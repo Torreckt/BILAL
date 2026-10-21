@@ -278,7 +278,15 @@ html {
   top: 0;
   z-index: 50;
   background: var(--beige);
-  transition: box-shadow 200ms ease;
+  transition:
+    box-shadow 200ms ease,
+    transform 260ms var(--ease-out);
+}
+@media (max-width: 860px) {
+  .nav.is-hidden:not(:focus-within) {
+    transform: translateY(-100%);
+    box-shadow: none;
+  }
 }
 .nav.is-scrolled {
   box-shadow: 0 2px 0 var(--ink);
