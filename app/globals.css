@@ -725,8 +725,12 @@ html {
 }
 @media (max-width: 560px) {
   .hero__side {
+    left: 12px;
+    right: 12px;
     font-size: 0.75rem;
-    padding: 12px 6px;
+    line-height: 1.4;
+    text-align: center;
+    padding: 10px 16px 8px;
   }
   .frame__code {
     display: none;
