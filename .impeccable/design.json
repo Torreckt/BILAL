@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-21T23:50:00Z",
+  "title": "Design System: Mainstream",
+  "extensions": {
+    "colorMeta": {
+      "mainstream-red": { "role": "primary", "displayName": "Mainstream Red", "canonical": "oklch(45.8% 0.176 24.6)", "tonalRamp": ["#1f0001", "#4d0006", "#800011", "#af2329", "#d74c4a", "#fe736d", "#feb3ac", "#fee9e7"] },
+      "bright-red": { "role": "tertiary", "displayName": "Bright Red", "canonical": "oklch(59.3% 0.210 23.7)", "tonalRamp": ["#1f0001", "#4d0008", "#800114", "#b70222", "#e5363f", "#ff726f", "#ffb2ad", "#ffe9e7"] },
+      "dark-beige": { "role": "neutral", "displayName": "Dark Beige", "canonical": "oklch(71.4% 0.048 79.9)", "tonalRamp": ["#120900", "#312205", "#503f23", "#705e41", "#928061", "#b5a283", "#dac6a6", "#ffecce"] },
+      "beige-deep": { "role": "neutral", "displayName": "Deep Beige", "canonical": "oklch(67.5% 0.056 82.6)", "tonalRamp": ["#110a00", "#322200", "#513f1c", "#715e3b", "#93805b", "#b7a27d", "#dbc6a0", "#ffecca"] },
+      "ink-black": { "role": "neutral", "displayName": "Ink Black", "canonical": "oklch(17.8% 0 0)", "tonalRamp": ["#0b0b0b", "#252525", "#424242", "#616161", "#828282", "#a5a5a5", "#c9c9c9", "#eeeeee"] },
+      "ink-soft": { "role": "neutral", "displayName": "Soft Ink", "canonical": "oklch(27.2% 0.009 67.4)", "tonalRamp": ["#0e0a07", "#282420", "#45413d", "#65605c", "#86817c", "#a9a49f", "#cdc8c3", "#f3ede8"] },
+      "off-white": { "role": "neutral", "displayName": "Off-White Paper", "canonical": "oklch(94.8% 0.013 82.4)", "tonalRamp": ["#0e0b06", "#28251e", "#45413a", "#656159", "#86827a", "#a9a49c", "#cdc8c0", "#f3eee5"] },
+      "white": { "role": "neutral", "displayName": "White", "canonical": "oklch(100% 0 0)", "tonalRamp": ["#0b0b0b", "#252525", "#424242", "#616161", "#828282", "#a5a5a5", "#c9c9c9", "#eeeeee"] },
+      "ghost-paper": { "role": "neutral", "displayName": "Ghost Paper", "canonical": "rgba(242, 237, 228, 0.3)" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display (Rakkas)", "purpose": "Hero headline and finale line." },
+      "headline": { "displayName": "Headline (Rakkas)", "purpose": "Section headlines." },
+      "title": { "displayName": "Title (Rakkas)", "purpose": "Document titles inside sheets and panels." },
+      "subhead": { "displayName": "Subhead (Tajawal 800)", "purpose": "Card and block headings." },
+      "ghost": { "displayName": "Ghost (Gloock)", "purpose": "One giant translucent Latin word behind a section." },
+      "numeral": { "displayName": "Numeral (Gloock)", "purpose": "Step numbers and the salary equals sign." },
+      "lede": { "displayName": "Lede", "purpose": "Paragraph under a headline, 34 to 44ch." },
+      "body": { "displayName": "Body", "purpose": "Running Arabic copy." },
+      "button": { "displayName": "Button", "purpose": "Ribbon button labels." },
+      "ribbon": { "displayName": "Ribbon", "purpose": "Arabic on tags and stamps." },
+      "label": { "displayName": "Tracked Label (Space Grotesk)", "purpose": "Uppercase Latin metadata on objects: file codes, camera codes, place lines." }
+    },
+    "shadows": [
+      { "name": "object", "value": "6px 6px 0 #111111", "purpose": "Stamps, ledgers, price tag, process cards." },
+      { "name": "document", "value": "12px 12px 0 #111111", "purpose": "Case sheet and package dossier." },
+      { "name": "button", "value": "5px 5px 0 #111111", "purpose": "Ribbon buttons at rest; 3px on hover, 0 on press." },
+      { "name": "button-ink", "value": "5px 5px 0 #a3121f", "purpose": "Ink ribbon buttons cast red." },
+      { "name": "panel-ink", "value": "12px 12px 0 #a3121f", "purpose": "Black team panel; gift card uses 6px." },
+      { "name": "nav-rule", "value": "0 2px 0 #111111", "purpose": "Under the sticky nav once scrolled." }
+    ],
+    "motion": [
+      { "name": "ease-out", "value": "cubic-bezier(0.23, 1, 0.32, 1)", "purpose": "Default for transitions (160 to 260ms) and the 700ms headline rise." },
+      { "name": "ease-in-out", "value": "cubic-bezier(0.77, 0, 0.175, 1)", "purpose": "Reticle travel between frames (240ms)." },
+      { "name": "ease-stamp", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Stamp landing from 1.7x scale (340ms)." },
+      { "name": "ticker", "value": "38s linear infinite", "purpose": "Stream ticker loop." }
+    ],
+    "breakpoints": [
+      { "name": "xs", "value": "520px" },
+      { "name": "sm", "value": "560px" },
+      { "name": "md", "value": "760px" },
+      { "name": "nav", "value": "860px" },
+      { "name": "lg", "value": "960px" },
+      { "name": "xl", "value": "1100px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Ribbon Button (Red)",
+      "kind": "button",
+      "refersTo": "ribbon-button-red",
+      "description": "Primary WhatsApp CTA: tilted red strip with a hard ink shadow that presses in.",
+      "html": "<a class=\"ds-ribbon-btn\" href=\"#\" dir=\"rtl\"><svg class=\"ds-ribbon-btn__icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill=\"currentColor\" d=\"M12 2.2a9.7 9.7 0 0 0-8.4 14.6L2.3 21.7l5-1.3A9.7 9.7 0 1 0 12 2.2Zm0 17.7c-1.5 0-2.9-.4-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 19.9Z\"/></svg><span>احجز اجتماعك على واتساب</span></a>",
+      "css": ".ds-ribbon-btn { display: inline-flex; align-items: center; gap: 0.6em; background: #a3121f; color: #ffffff; font-family: Tajawal, sans-serif; font-weight: 800; font-size: 1.0625rem; line-height: 1; text-decoration: none; padding: 0.95em 1.4em 0.9em; border-radius: 0; transform: rotate(-2deg); box-shadow: 5px 5px 0 #111111; transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 160ms cubic-bezier(0.23, 1, 0.32, 1); white-space: nowrap; } .ds-ribbon-btn__icon { width: 1.25em; height: 1.25em; flex: none; } .ds-ribbon-btn:hover { transform: rotate(-2deg) translate(2px, 2px); box-shadow: 3px 3px 0 #111111; } .ds-ribbon-btn:active { transform: rotate(-2deg) translate(5px, 5px) scale(0.98); box-shadow: 0 0 0 #111111; } .ds-ribbon-btn:focus-visible { outline: 3px solid #111111; outline-offset: 3px; }"
+    },
+    {
+      "name": "Ribbon Button (Ink)",
+      "kind": "button",
+      "refersTo": "ribbon-button-ink",
+      "description": "Secondary WhatsApp CTA for the nav and light documents; ink strip casting a red shadow.",
+      "html": "<a class=\"ds-ribbon-btn-ink\" href=\"#\" dir=\"rtl\">احجز اجتماع</a>",
+      "css": ".ds-ribbon-btn-ink { display: inline-flex; align-items: center; background: #111111; color: #f2ede4; font-family: Tajawal, sans-serif; font-weight: 800; font-size: 0.9375rem; line-height: 1; text-decoration: none; padding: 0.75em 1.1em 0.7em; border-radius: 0; transform: rotate(-2deg); box-shadow: 5px 5px 0 #a3121f; transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 160ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-ribbon-btn-ink:hover { transform: rotate(-2deg) translate(2px, 2px); box-shadow: 3px 3px 0 #a3121f; } .ds-ribbon-btn-ink:active { transform: rotate(-2deg) translate(5px, 5px) scale(0.98); box-shadow: 0 0 0 #a3121f; } .ds-ribbon-btn-ink:focus-visible { outline: 3px solid #111111; outline-offset: 3px; }"
+    },
+    {
+      "name": "Ribbon Button (Paper)",
+      "kind": "button",
+      "refersTo": "ribbon-button-paper",
+      "description": "CTA on red drenched sections.",
+      "html": "<div class=\"ds-red-ground\"><a class=\"ds-ribbon-btn-paper\" href=\"#\" dir=\"rtl\">احجز اجتماعك الآن</a></div>",
+      "css": ".ds-red-ground { background: #a3121f; padding: 40px; } .ds-ribbon-btn-paper { display: inline-flex; background: #f2ede4; color: #111111; font-family: Tajawal, sans-serif; font-weight: 800; font-size: 1.25rem; line-height: 1; text-decoration: none; padding: 1em 1.5em 0.95em; transform: rotate(-2deg); box-shadow: 5px 5px 0 #111111; transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 160ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-ribbon-btn-paper:hover { transform: rotate(-2deg) translate(2px, 2px); box-shadow: 3px 3px 0 #111111; } .ds-ribbon-btn-paper:focus-visible { outline: 3px solid #f2ede4; outline-offset: 3px; }"
+    },
+    {
+      "name": "Ribbon Tags",
+      "kind": "chip",
+      "refersTo": "ribbon-tag-red",
+      "description": "Tilted claim strips in red, ink or paper; Arabic in Tajawal 800, Latin tracked in Space Grotesk.",
+      "html": "<div class=\"ds-tags\"><span class=\"ds-tag ds-tag--red\" dir=\"ltr\">WATCH US</span><span class=\"ds-tag ds-tag--ink ds-tag--ar\" dir=\"rtl\">من أول رسالة.. لأول ضجة</span></div>",
+      "css": ".ds-tags { display: flex; gap: 16px; align-items: center; background: #b3a081; padding: 24px; } .ds-tag { display: inline-block; font-family: 'Space Grotesk', sans-serif; font-weight: 700; letter-spacing: 0.18em; font-size: 0.8125rem; line-height: 1; padding: 0.6em 1em 0.55em; transform: rotate(-2deg); } .ds-tag--ar { font-family: Tajawal, sans-serif; font-weight: 800; letter-spacing: 0; font-size: 1rem; } .ds-tag--red { background: #a3121f; color: #ffffff; } .ds-tag--ink { background: #111111; color: #f2ede4; }"
+    },
+    {
+      "name": "Rubber Stamp",
+      "kind": "custom",
+      "refersTo": "rubber-stamp",
+      "description": "Status mark on documents: red double rule, tilted -6 to -8deg.",
+      "html": "<span class=\"ds-stamp\" dir=\"rtl\">ضمن الفريق</span>",
+      "css": ".ds-stamp { display: inline-block; border: 3px solid #a3121f; outline: 1px solid #a3121f; outline-offset: 3px; color: #a3121f; font-family: Tajawal, sans-serif; font-weight: 800; font-size: 1rem; padding: 0.35em 0.8em 0.25em; transform: rotate(-8deg); }"
+    },
+    {
+      "name": "Case File",
+      "kind": "card",
+      "refersTo": "case-sheet",
+      "description": "Signature tabbed document: folder tabs over a white sheet with document shadow.",
+      "html": "<div class=\"ds-file\" dir=\"rtl\"><div class=\"ds-file__tabs\"><button class=\"ds-file__tab\" aria-selected=\"true\">السوشال ميديا</button><button class=\"ds-file__tab\">الإعلانات</button></div><div class=\"ds-file__sheet\"><div class=\"ds-file__meta\" dir=\"ltr\"><span>FILE · SOCIAL</span><span>MAINSTREAM / RIYADH</span></div><h3 class=\"ds-file__title\">السوشال ميديا والمحتوى</h3><ul class=\"ds-file__items\"><li>إدارة حسابات السوشال ميديا</li><li>خطة محتوى شهرية</li></ul></div></div>",
+      "css": ".ds-file { background: #b3a081; padding: 24px 32px 40px; } .ds-file__tabs { display: flex; gap: 6px; margin-bottom: -2px; position: relative; z-index: 1; } .ds-file__tab { border: 2px solid #111111; border-bottom: 0; background: #a8946f; color: #111111; font: 700 0.9375rem/1.3 Tajawal, sans-serif; padding: 10px 16px 12px; cursor: pointer; transform: translateY(6px); transition: transform 180ms cubic-bezier(0.23, 1, 0.32, 1), background-color 180ms ease; } .ds-file__tab[aria-selected=\"true\"] { background: #ffffff; transform: translateY(0); } .ds-file__tab:not([aria-selected=\"true\"]):hover { transform: translateY(2px); } .ds-file__tab:focus-visible { outline: 3px solid #111111; outline-offset: 3px; } .ds-file__sheet { background: #ffffff; border: 2px solid #111111; box-shadow: 12px 12px 0 #111111; padding: 40px; } .ds-file__meta { display: flex; justify-content: space-between; font: 700 0.6875rem 'Space Grotesk', sans-serif; letter-spacing: 0.2em; border-bottom: 2px solid #111111; padding-bottom: 12px; margin-bottom: 28px; } .ds-file__title { font-family: Rakkas, serif; font-weight: 400; color: #a3121f; font-size: 2.5rem; line-height: 1.15; margin: 0; } .ds-file__items { list-style: none; padding: 0; margin: 20px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; font-family: Tajawal, sans-serif; font-weight: 500; } .ds-file__items li { padding: 12px 0; border-top: 1px solid rgba(17, 17, 17, 0.18); display: flex; gap: 12px; align-items: baseline; } .ds-file__items li::before { content: ''; flex: none; width: 10px; height: 10px; background: #a3121f; transform: rotate(-4deg) translateY(1px); }"
+    },
+    {
+      "name": "Paper Card (Process Step)",
+      "kind": "card",
+      "refersTo": "paper-card",
+      "description": "Off-white card with 2px ink border, object shadow, red wave and Gloock numeral.",
+      "html": "<div class=\"ds-step\" dir=\"rtl\"><svg class=\"ds-step__wave\" viewBox=\"0 0 120 16\" aria-hidden=\"true\"><path d=\"M4 8c6.5-7 13-7 19.5 0s13 7 19.5 0 13-7 19.5 0 13 7 19.5 0 13-7 19.5 0\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\"/></svg><span class=\"ds-step__num\" dir=\"ltr\">01</span><h3>تكلّمنا واتساب</h3><p>رسالة وحدة تكفي. نحدد موعد اجتماع يناسبك.</p></div>",
+      "css": ".ds-step { background: #f2ede4; border: 2px solid #111111; box-shadow: 6px 6px 0 #111111; padding: 24px 24px 28px; display: grid; gap: 8px; max-width: 320px; font-family: Tajawal, sans-serif; color: #111111; } .ds-step__wave { width: 88px; color: #a3121f; } .ds-step__num { font-family: Gloock, serif; font-size: 4rem; line-height: 1; color: #a3121f; } .ds-step h3 { font-weight: 800; font-size: 1.5rem; line-height: 1.3; margin: 0; } .ds-step p { color: #2a2622; font-weight: 500; line-height: 1.8; margin: 0; }"
+    },
+    {
+      "name": "Navigation",
+      "kind": "nav",
+      "refersTo": "nav",
+      "description": "Sticky beige bar: eye and Gloock wordmark, red underline-wipe links, tracked place label, ink ribbon CTA.",
+      "html": "<header class=\"ds-nav\" dir=\"rtl\"><a class=\"ds-nav__brand\" href=\"#\" dir=\"ltr\">Mainstream</a><ul class=\"ds-nav__links\"><li><a href=\"#\">الخدمات</a></li><li><a href=\"#\">الباقات</a></li><li><a href=\"#\">كيف نشتغل</a></li></ul><span class=\"ds-nav__place\" dir=\"ltr\">RIYADH · KSA</span><a class=\"ds-nav__cta\" href=\"#\">احجز اجتماع</a></header>",
+      "css": ".ds-nav { display: flex; align-items: center; gap: 28px; height: 76px; padding-inline: 32px; background: #b3a081; color: #111111; box-shadow: 0 2px 0 #111111; font-family: Tajawal, sans-serif; } .ds-nav__brand { font-family: Gloock, serif; color: #a3121f; font-size: 1.75rem; line-height: 1; text-decoration: none; margin-inline-end: auto; } .ds-nav__links { display: flex; gap: 28px; list-style: none; margin: 0; padding: 0; } .ds-nav__links a { color: inherit; font-weight: 700; text-decoration: none; background-image: linear-gradient(#a3121f, #a3121f); background-size: 0 2px; background-position: 100% 100%; background-repeat: no-repeat; padding-bottom: 2px; transition: background-size 200ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-nav__links a:hover { background-size: 100% 2px; } .ds-nav__links a:focus-visible, .ds-nav__cta:focus-visible { outline: 3px solid #111111; outline-offset: 3px; } .ds-nav__place { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.75rem; letter-spacing: 0.24em; } .ds-nav__cta { background: #111111; color: #f2ede4; font-weight: 800; font-size: 0.9375rem; line-height: 1; text-decoration: none; padding: 0.75em 1.1em 0.7em; transform: rotate(-2deg); box-shadow: 5px 5px 0 #a3121f; }"
+    },
+    {
+      "name": "Ink Ticker",
+      "kind": "custom",
+      "refersTo": "stream-ticker",
+      "description": "Full-bleed ink band at -1deg carrying the taglines between bright-red waves.",
+      "html": "<div class=\"ds-stream\"><div class=\"ds-stream__run\" dir=\"rtl\"><span>نصنع الضجة.. وأنت تملك الأضواء</span><svg class=\"ds-stream__wave\" viewBox=\"0 0 120 16\" aria-hidden=\"true\"><path d=\"M4 8c6.5-7 13-7 19.5 0s13 7 19.5 0 13-7 19.5 0 13 7 19.5 0 13-7 19.5 0\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\"/></svg><span class=\"ds-stream__latin\" dir=\"ltr\">WE CREATE THE HYPE</span></div></div>",
+      "css": ".ds-stream { background: #111111; color: #f2ede4; padding: 18px 24px; transform: rotate(-1deg); overflow: hidden; } .ds-stream__run { display: flex; align-items: center; gap: 28px; font-family: Tajawal, sans-serif; font-weight: 800; font-size: 1.5rem; white-space: nowrap; } .ds-stream__latin { font-family: 'Space Grotesk', sans-serif; font-weight: 700; letter-spacing: 0.2em; font-size: 0.8em; } .ds-stream__wave { width: 64px; color: #e0303b; flex: none; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Case File",
+    "overview": "The agency that watches, rendered as a dossier the eye opens on your business. The ground is dark beige file stock; on it sit ink-black frames, white case sheets with a hard black offset shadow, red and black ribbons tilted a few degrees, rubber-stamp verdicts, halftone dots, and huge pale ghost words in Gloock behind everything. Every element in this vocabulary comes from the binding Mainstream brand guidelines; the dossier is how they were put to work, not a layer on top of them.\n\nDensity is poster-like rather than app-like: few, large, confident pieces per section, each one an object (sheet, ledger, stamp, ribbon) that sits slightly off square as if dropped on a desk. Arabic is the primary reading direction (RTL); Latin appears as a second, tracked voice for file codes, places and taglines. Colour is committed: beige and ink carry most surfaces, while Mainstream Red takes over entire sections at the moments that sell (the one-salary argument, the finale).",
+    "keyCharacteristics": [
+      "Dark beige (#b3a081) ground, never white page.",
+      "Square-cornered objects with hard, unblurred offset shadows.",
+      "Ribbons and stamps tilted 2 to 8 degrees; panels tilted under 2 degrees.",
+      "Rakkas Arabic display in red; Gloock for ghost words, numerals and the wordmark.",
+      "Halftone ink dots on red and on paper as the only texture.",
+      "The eye-and-wave mark appears as a recurring object, always in its fixed colours."
+    ],
+    "rules": [
+      { "name": "The Stock And Verdict Rule", "body": "Beige and ink are the stock every section is built from; red is either a verdict (button, ribbon, stamp, headline) or a full-section drench. Red never becomes a tint or a gradient.", "section": "colors" },
+      { "name": "The Display-Only Red Rule", "body": "Red text on the beige ground measures about 3.1:1, so red type on beige is display size only (headlines, numerals, wordmark). Body-size emphasis on beige uses ink weight, not red.", "section": "colors" },
+      { "name": "The Fixed Eye Rule", "body": "The eye is always white with a red iris and black pupil, and its wave is red; only its outline switches between ink (light grounds) and off-white (black grounds). Never recolour, stretch, tilt or shadow the logo lockup, keep at least one eye-width of clear space, and place the logo only on dark beige, black or white.", "section": "colors" },
+      { "name": "The Arabic Leads Rule", "body": "Rakkas carries every headline at weight 400 with zero letter-spacing; Latin never takes a headline role. Arabic text on a tag drops the tracking and switches to Tajawal 800.", "section": "typography" },
+      { "name": "The Tracked Latin Rule", "body": "Space Grotesk appears only as tracked uppercase Latin metadata on objects (file headers, camera codes, slot tabs, place and copyright lines, ticker taglines). It is never a heading or a label stacked above a section headline.", "section": "typography" },
+      { "name": "The No-Blur Rule", "body": "Every shadow is a solid offset with 0 blur. Shadows are never on the logo.", "section": "elevation" },
+      { "name": "The Press-In Rule", "body": "Interactive objects respond by translating toward their shadow and shrinking it (5px to 3px on hover, to 0 on press), never by glowing or lifting.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do build every page on the dark beige ground with ink type, and spend red on verdicts or a full-section drench.",
+      "Do cast every shadow as a solid offset with 0 blur: 6px for objects, 12px for documents, 5px for buttons; black objects cast red.",
+      "Do tilt ribbons 2 to 4 degrees and stamps 4 to 8 degrees; keep large panels under 2 degrees.",
+      "Do set Arabic headlines in Rakkas 400 and keep Latin to Gloock ghosts/numerals and tracked Space Grotesk metadata.",
+      "Do put one giant Gloock ghost word behind a section at low opacity, aria-hidden.",
+      "Do keep the eye in its fixed colours and the logo on dark beige, black or white with one eye-width of clear space.",
+      "Do route every call to action through a ribbon button that opens WhatsApp.",
+      "Do show placeholders as labelled, stamped slots when client proof is not yet available."
+    ],
+    "donts": [
+      "Don't round corners on buttons, ribbons, cards or documents.",
+      "Don't blur a shadow, add a glow, or put any shadow on the logo.",
+      "Don't recolour, stretch or tilt the logo lockup.",
+      "Don't set body-size red text on the beige ground; it reads about 3.1:1.",
+      "Don't stack a ribbon or tracked label above a headline as an eyebrow; ribbons carry a claim beside or after the headline.",
+      "Don't use bright red as a surface colour; it is the reticle and live accent only.",
+      "Don't add textures other than the halftone dot."
+    ]
+  }
+}

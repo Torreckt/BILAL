@@ -1,0 +1,22 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "تشغيل الموقع + فتح المتصفح",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev",
+      "serverReadyAction": {
+        "pattern": "- Local:\\s+(https?://\\S+)",
+        "uriFormat": "%s",
+        "action": "openExternally"
+      }
+    },
+    {
+      "name": "تصحيح الأخطاء في Chrome",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000"
+    }
+  ]
+}

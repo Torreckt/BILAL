@@ -1,0 +1,40 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "1. تثبيت المكتبات",
+      "type": "shell",
+      "command": "npm install",
+      "problemMatcher": []
+    },
+    {
+      "label": "2. تشغيل الموقع",
+      "type": "shell",
+      "command": "npm run dev",
+      "isBackground": true,
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": {
+        "owner": "nextjs",
+        "pattern": { "regexp": "^x^" },
+        "background": {
+          "activatesOnStart": true,
+          "beginsPattern": "Next\\.js",
+          "endsPattern": "Ready in"
+        }
+      }
+    },
+    {
+      "label": "3. بناء نسخة النشر",
+      "type": "shell",
+      "command": "npm run build",
+      "problemMatcher": ["$tsc"]
+    },
+    {
+      "label": "4. تشغيل نسخة النشر",
+      "type": "shell",
+      "command": "npm run start",
+      "isBackground": true,
+      "problemMatcher": []
+    }
+  ]
+}
