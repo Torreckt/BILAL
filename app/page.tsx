@@ -353,7 +353,7 @@ function Footer() {
           ))}
         </ul>
         <p className="footer__meta" dir="ltr">
-          RIYADH · KSA — © 2026 Mainstream
+          © 2026 Mainstream
         </p>
       </div>
     </footer>
