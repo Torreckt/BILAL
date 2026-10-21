@@ -2,9 +2,31 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Eye } from "./Eye";
-import { DEFAULT_MESSAGE, INSTAGRAM_HANDLE, TIKTOK_HANDLE, WHATSAPP_NUMBER, whatsappLink } from "@/lib/site";
+import {
+  DEFAULT_MESSAGE,
+  EMAIL,
+  HOURS,
+  INSTAGRAM_HANDLE,
+  LOCATION,
+  TIKTOK_HANDLE,
+  WHATSAPP_NUMBER,
+  whatsappLink,
+} from "@/lib/site";
 
 const icons = {
+  pin: <path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z" />,
+  mail: (
+    <g fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="m3.5 6 8.5 7 8.5-7" />
+    </g>
+  ),
+  phone: (
+    <path
+      fill="currentColor"
+      d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1l-2.3 2.2Z"
+    />
+  ),
   tiktok: (
     <path
       fill="currentColor"
@@ -35,17 +57,11 @@ const socials = [
 // 966500000000 → +966 50 000 0000
 const phone = `+${WHATSAPP_NUMBER.slice(0, 3)} ${WHATSAPP_NUMBER.slice(3, 5)} ${WHATSAPP_NUMBER.slice(5, 8)} ${WHATSAPP_NUMBER.slice(8)}`;
 
-const contacts = [
-  { label: phone, href: whatsappLink(DEFAULT_MESSAGE), icon: icons.whatsapp },
-  { label: `@${INSTAGRAM_HANDLE}`, href: `https://instagram.com/${INSTAGRAM_HANDLE}`, icon: icons.instagram },
-  { label: `@${TIKTOK_HANDLE}`, href: `https://www.tiktok.com/@${TIKTOK_HANDLE}`, icon: icons.tiktok },
-];
-
-const sections = [
-  { href: "#services", label: "الخدمات", code: "SERVICES" },
-  { href: "#team", label: "الفريق", code: "TEAM" },
-  { href: "#packages", label: "الباقات", code: "PACKAGES" },
-  { href: "#process", label: "كيف نشتغل", code: "PROCESS" },
+const contacts: { label: string; href?: string; icon: React.ReactNode; ltr?: boolean }[] = [
+  { label: LOCATION, icon: icons.pin },
+  { label: EMAIL, href: `mailto:${EMAIL}`, icon: icons.mail, ltr: true },
+  { label: phone, href: whatsappLink(DEFAULT_MESSAGE), icon: icons.phone, ltr: true },
+  { label: `instagram.com/${INSTAGRAM_HANDLE}`, href: `https://instagram.com/${INSTAGRAM_HANDLE}`, icon: icons.instagram, ltr: true },
 ];
 
 function Icon({ children }: { children: React.ReactNode }) {
@@ -102,14 +118,16 @@ export function Footer() {
       <div className="wrap footer__grid">
         <div className="footer__col">
           <a className="footer__logo" href="#top" aria-label="ماين ستريم — الرئيسية">
-            <Eye className="footer__eye" tone="light" />
+            <span className="footer__badge">
+              <Eye className="footer__eye" tone="light" wave={false} />
+            </span>
             <span className="footer__word" dir="ltr">
               Main<span>stream</span>
             </span>
           </a>
-          <p className="footer__about">وكالة تسويق في الرياض. فريقك التسويقي المتكامل براتب موظف واحد.</p>
-          <p className="footer__line" dir="ltr">
-            We create the hype. You own the spotlight.
+          <p className="footer__about">
+            وكالة تسويق في الرياض. فريقك التسويقي المتكامل براتب موظف واحد: سوشال ميديا، تصوير وريلز، إعلانات مدفوعة،
+            مؤثرين، وهوية.
           </p>
           <ul className="footer__social" aria-label="حساباتنا">
             {socials.map((s) => (
@@ -128,24 +146,28 @@ export function Footer() {
             {contacts.map((c) => (
               <li key={c.label}>
                 <Icon>{c.icon}</Icon>
-                <a href={c.href} target="_blank" rel="noopener noreferrer" dir="ltr">
-                  {c.label}
-                </a>
+                {c.href ? (
+                  <a href={c.href} target={c.href.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer" dir={c.ltr ? "ltr" : undefined}>
+                    {c.label}
+                  </a>
+                ) : (
+                  <span>{c.label}</span>
+                )}
               </li>
             ))}
           </ul>
         </div>
 
         <div className="footer__col">
-          <h3 className="footer__title">الأقسام</h3>
-          <ul className="footer__sections">
-            {sections.map((s) => (
-              <li key={s.href}>
-                <a href={s.href}>{s.label}</a>
-                <span dir="ltr">{s.code}</span>
-              </li>
+          <h3 className="footer__title">أوقات العمل</h3>
+          <dl className="footer__hours">
+            {HOURS.map(([day, time]) => (
+              <div key={day}>
+                <dt>{day}</dt>
+                <dd dir="ltr">{time}</dd>
+              </div>
             ))}
-          </ul>
+          </dl>
         </div>
 
         <div className="footer__col">
@@ -162,8 +184,11 @@ export function Footer() {
       </div>
 
       <div className="wrap footer__bottom">
-        <p dir="ltr" suppressHydrationWarning>
-          © {new Date().getFullYear()} Mainstream
+        <p suppressHydrationWarning>
+          <span dir="ltr">© {new Date().getFullYear()} Mainstream.</span> صُمّم وطُوّر بواسطة{" "}
+          <a href="#top" dir="ltr">
+            Mainstream
+          </a>
         </p>
       </div>
 

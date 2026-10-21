@@ -2,6 +2,14 @@
 export const WHATSAPP_NUMBER = "966500000000"; // TODO: رقم الواتساب الحقيقي بالصيغة الدولية بدون +
 export const INSTAGRAM_HANDLE = "mainstream"; // TODO: اسم الحساب الحقيقي
 export const TIKTOK_HANDLE = "mainstream"; // TODO: اسم حساب تيك توك الحقيقي
+export const EMAIL = "hello@mainstream.sa"; // TODO: الإيميل الحقيقي
+export const LOCATION = "الرياض، السعودية";
+// TODO: أوقات العمل الحقيقية
+export const HOURS: [string, string][] = [
+  ["الأحد - الخميس", "09:00 - 18:00"],
+  ["السبت", "10:00 - 15:00"],
+  ["الجمعة", "مغلق"],
+];
 
 export function whatsappLink(message: string) {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
