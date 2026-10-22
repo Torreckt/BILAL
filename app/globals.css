@@ -578,10 +578,11 @@ html {
   color: var(--paper);
   font-weight: 700;
   font-size: clamp(0.8125rem, 1.05vw, 1rem);
-  line-height: 1;
+  line-height: 1.25;
   text-align: center;
-  padding: 0.7em 0.4em 0.6em;
-  white-space: nowrap;
+  padding: 0.55em 0.4em 0.45em;
+  /* Longer roles wrap to two lines instead of spilling out of the label. */
+  text-wrap: balance;
   transform: rotate(-2deg);
   outline: 1.5px dashed rgba(242, 237, 228, 0.75);
   outline-offset: -5px;
@@ -743,6 +744,12 @@ html {
     width: 94%;
     font-size: 0.75rem;
     padding: 0.65em 0.2em 0.55em;
+  }
+}
+@media (max-width: 400px) {
+  /* The label wraps to two lines here; drop it below the grid so it doesn't cover the bottom row. */
+  .hero__side {
+    bottom: -34px;
   }
 }
 
@@ -1240,29 +1247,12 @@ main {
   font-size: 1.125rem;
   margin-bottom: 12px;
 }
-.dossier__ads ol {
-  counter-reset: ad;
-}
-.dossier__ads li {
-  counter-increment: ad;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(17, 17, 17, 0.2);
+.dossier__ads p {
+  padding: 14px 18px;
+  border-inline-start: 4px solid var(--red);
+  background: rgba(17, 17, 17, 0.06);
   font-weight: 700;
-}
-.dossier__ads li::before {
-  content: counter(ad);
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  flex: none;
-  background: var(--red);
-  color: var(--white);
-  font-family: var(--f-label);
-  font-size: 0.875rem;
+  line-height: 1.8;
 }
 .gift {
   background: var(--ink);

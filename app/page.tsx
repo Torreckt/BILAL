@@ -142,14 +142,8 @@ function Packages() {
 
           <div className="dossier__foot">
             <div className="dossier__ads">
-              <h4>إعلانات مدفوعة ضمن الباقة</h4>
-              <ol>
-                {cafePackage.ads.map((a) => (
-                  <li key={a}>
-                    إعلان مدفوع في <span dir="ltr">{a}</span>
-                  </li>
-                ))}
-              </ol>
+              <h4>الإعلانات المدفوعة</h4>
+              <p>{cafePackage.ad}</p>
             </div>
 
             <aside className="gift" aria-label="هدية الوكالة">
