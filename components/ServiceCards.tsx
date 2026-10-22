@@ -35,9 +35,11 @@ export function ServiceCards() {
     <ul className="svc-grid">
       {caseFiles.map((f) => (
         <li key={f.id} className="svc" tabIndex={0}>
-          <svg className="svc__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            {icons[f.id]}
-          </svg>
+          <span className="svc__badge" aria-hidden="true">
+            <svg className="svc__icon" viewBox="0 0 24 24" focusable="false">
+              {icons[f.id]}
+            </svg>
+          </span>
           <h3 className="svc__title">{f.title}</h3>
           <p className="svc__line">{f.line}</p>
           <ul className="svc__items">
