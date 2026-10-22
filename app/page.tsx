@@ -1,6 +1,6 @@
 import { Nav } from "@/components/Nav";
 import { Hero } from "@/components/Hero";
-import { CaseFiles } from "@/components/CaseFiles";
+import { ServiceCards } from "@/components/ServiceCards";
 import { EyeTracker } from "@/components/EyeTracker";
 import { Eye, Wave } from "@/components/Eye";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
@@ -35,7 +35,7 @@ function Stream() {
 function Services() {
   return (
     <section id="services" className="section services" aria-labelledby="services-title">
-      <div className="wrap services__grid">
+      <div className="wrap">
         <div className="services__intro">
           <h2 id="services-title" className="display display--md">
             وش نسوي لك؟
@@ -47,7 +47,7 @@ function Services() {
             اسألنا عن خدمة
           </WhatsAppButton>
         </div>
-        <CaseFiles />
+        <ServiceCards />
       </div>
     </section>
   );
