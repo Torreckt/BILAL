@@ -14,19 +14,8 @@ const links = [
 export function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const [hidden, setHidden] = useState(false);
   useEffect(() => {
-    let lastY = window.scrollY;
-    const onScroll = () => {
-      const y = window.scrollY;
-      setScrolled(y > 24);
-      // Tuck the bar away while scrolling down, bring it back on any scroll up.
-      // Only small screens apply the hidden style (see .nav.is-hidden in globals.css).
-      if (y < 80) setHidden(false);
-      else if (Math.abs(y - lastY) > 6) setHidden(y > lastY);
-      else return;
-      lastY = y;
-    };
+    const onScroll = () => setScrolled(window.scrollY > 24);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -47,9 +36,7 @@ export function Nav() {
   }, [open]);
 
   return (
-    <header
-      className={`nav ${scrolled || open ? "is-scrolled" : ""} ${open ? "is-open" : ""} ${hidden && !open ? "is-hidden" : ""}`}
-    >
+    <header className={`nav ${scrolled || open ? "is-scrolled" : ""} ${open ? "is-open" : ""}`}>
       <div className="nav__inner wrap">
         <a className="brand" href="#top" aria-label="ماين ستريم — الرئيسية">
           <Eye className="brand__eye" />
