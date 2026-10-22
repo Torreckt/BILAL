@@ -56,7 +56,7 @@ export function CaseFiles() {
         </p>
         <div className="files__meta" aria-hidden="true">
           <span>FILE · {file.code}</span>
-          <span>MAINSTREAM / RIYADH</span>
+          <span>MAINSTREAM</span>
         </div>
         <h3 className="files__title">{file.title}</h3>
         <p className="files__line">{file.line}</p>
