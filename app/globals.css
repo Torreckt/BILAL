@@ -1790,6 +1790,53 @@ main {
   border-radius: 16px;
   filter: grayscale(100%) invert(95%) contrast(110%) brightness(75%);
 }
+/* Brand pin over the map: marks Riyadh even when the embedded map can't load. */
+.footer__pin {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  transform: translate(-50%, -75%);
+  text-decoration: none;
+}
+.footer__pin svg {
+  width: 44px;
+  height: 44px;
+  color: var(--red-bright);
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.55));
+  transform-origin: 50% 100%;
+}
+[data-motion="ok"] .footer.is-visible .footer__pin svg {
+  animation: footer-pin 2.4s var(--ease-out) infinite;
+}
+@keyframes footer-pin {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-8px);
+  }
+}
+.footer__pin span {
+  background: var(--ink);
+  color: var(--paper);
+  font-weight: 700;
+  font-size: 0.875rem;
+  padding: 4px 12px;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+  transition: background-color 300ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .footer__pin:hover span {
+    background: var(--red-bright);
+  }
+}
 .footer__bottom {
   margin-top: 70px;
 }
