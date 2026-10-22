@@ -1679,6 +1679,7 @@ main {
 }
 .footer__social {
   display: flex;
+  flex-wrap: wrap;
   gap: 14px;
 }
 .footer__social a {
@@ -1686,8 +1687,8 @@ main {
   overflow: hidden;
   display: grid;
   place-items: center;
-  width: 46px;
-  height: 46px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   color: var(--paper);
   background: #1b1b1b;
@@ -1699,8 +1700,8 @@ main {
     box-shadow 350ms var(--ease-out);
 }
 .footer__social svg {
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
 }
 @media (hover: hover) and (pointer: fine) {
   .footer__social a:hover {
@@ -1726,31 +1727,6 @@ main {
     opacity: 0;
   }
 }
-.footer__contact li {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  margin-bottom: 20px;
-  line-height: 1.7;
-  color: rgba(242, 237, 228, 0.78);
-  overflow-wrap: anywhere;
-}
-.footer__contact svg {
-  flex: none;
-  width: 20px;
-  height: 20px;
-  margin-top: 3px;
-  color: var(--red-bright);
-}
-.footer__contact a {
-  text-decoration: none;
-  transition: color 300ms ease;
-}
-@media (hover: hover) and (pointer: fine) {
-  .footer__contact a:hover {
-    color: var(--red-bright);
-  }
-}
 .footer__hours {
   display: grid;
   gap: 18px;
@@ -1770,17 +1746,9 @@ main {
   border-radius: 18px;
   background: linear-gradient(145deg, var(--red-bright), var(--red));
   box-shadow: 0 10px 25px rgba(224, 48, 59, 0.15);
-}
-/* Tints the greyscale map in the brand red. */
-.footer__map::after {
-  content: "";
-  position: absolute;
-  inset: 2px;
-  border-radius: 16px;
-  background: var(--red-bright);
-  mix-blend-mode: color;
-  opacity: 0.65;
-  pointer-events: none;
+  transition:
+    transform 350ms var(--ease-out),
+    box-shadow 350ms var(--ease-out);
 }
 .footer__map iframe {
   display: block;
@@ -1788,53 +1756,50 @@ main {
   height: 100%;
   border: 0;
   border-radius: 16px;
-  filter: grayscale(100%) invert(95%) contrast(110%) brightness(75%);
+  background: #1b1b1b;
+  filter: saturate(0.85);
+  transition: filter 350ms ease;
 }
-/* Brand pin over the map: marks Riyadh even when the embedded map can't load. */
-.footer__pin {
-  position: absolute;
-  z-index: 1;
-  top: 50%;
-  left: 50%;
-  display: grid;
-  justify-items: center;
-  gap: 6px;
-  transform: translate(-50%, -75%);
-  text-decoration: none;
-}
-.footer__pin svg {
-  width: 44px;
-  height: 44px;
-  color: var(--red-bright);
-  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.55));
-  transform-origin: 50% 100%;
-}
-[data-motion="ok"] .footer.is-visible .footer__pin svg {
-  animation: footer-pin 2.4s var(--ease-out) infinite;
-}
-@keyframes footer-pin {
-  0%,
-  60%,
-  100% {
-    transform: translateY(0);
+@media (hover: hover) and (pointer: fine) {
+  .footer__map:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 34px rgba(224, 48, 59, 0.35);
   }
-  30% {
-    transform: translateY(-8px);
+  .footer__map:hover iframe {
+    filter: none;
   }
 }
-.footer__pin span {
-  background: var(--ink);
+.footer__maplink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(242, 237, 228, 0.15);
   color: var(--paper);
   font-weight: 700;
   font-size: 0.875rem;
-  padding: 4px 12px;
-  border-radius: 999px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
-  transition: background-color 300ms ease;
+  text-decoration: none;
+  transition:
+    background-color 300ms var(--ease-out),
+    border-color 300ms var(--ease-out),
+    transform 300ms var(--ease-out);
+}
+.footer__maplink svg {
+  width: 18px;
+  height: 18px;
+  color: var(--red-bright);
+  transition: color 300ms ease;
 }
 @media (hover: hover) and (pointer: fine) {
-  .footer__pin:hover span {
+  .footer__maplink:hover {
     background: var(--red-bright);
+    border-color: var(--red-bright);
+    transform: translateY(-3px);
+  }
+  .footer__maplink:hover svg {
+    color: var(--white);
   }
 }
 .footer__bottom {

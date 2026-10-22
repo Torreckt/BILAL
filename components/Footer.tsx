@@ -4,27 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { Eye } from "./Eye";
 import {
   DEFAULT_MESSAGE,
-  EMAIL,
   HOURS,
   INSTAGRAM_HANDLE,
   TIKTOK_HANDLE,
-  WHATSAPP_NUMBER,
   whatsappLink,
 } from "@/lib/site";
 
 const icons = {
-  mail: (
-    <g fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="3" y="5" width="18" height="14" rx="2" />
-      <path d="m3.5 6 8.5 7 8.5-7" />
-    </g>
-  ),
-  phone: (
-    <path
-      fill="currentColor"
-      d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1l-2.3 2.2Z"
-    />
-  ),
   tiktok: (
     <path
       fill="currentColor"
@@ -52,14 +38,7 @@ const socials = [
   { label: "WhatsApp", href: whatsappLink(DEFAULT_MESSAGE), icon: icons.whatsapp },
 ];
 
-// 966500000000 → +966 50 000 0000
-const phone = `+${WHATSAPP_NUMBER.slice(0, 3)} ${WHATSAPP_NUMBER.slice(3, 5)} ${WHATSAPP_NUMBER.slice(5, 8)} ${WHATSAPP_NUMBER.slice(8)}`;
-
-const contacts: { label: string; href?: string; icon: React.ReactNode; ltr?: boolean }[] = [
-  { label: EMAIL, href: `mailto:${EMAIL}`, icon: icons.mail, ltr: true },
-  { label: phone, href: whatsappLink(DEFAULT_MESSAGE), icon: icons.phone, ltr: true },
-  { label: `instagram.com/${INSTAGRAM_HANDLE}`, href: `https://instagram.com/${INSTAGRAM_HANDLE}`, icon: icons.instagram, ltr: true },
-];
+const MAP_LINK = "https://www.google.com/maps/place/Riyadh+Saudi+Arabia";
 
 function Icon({ children }: { children: React.ReactNode }) {
   return (
@@ -126,30 +105,16 @@ export function Footer() {
             وكالة تسويق في الرياض. فريقك التسويقي المتكامل براتب موظف واحد: سوشال ميديا، تصوير وريلز، إعلانات مدفوعة،
             مؤثرين، وهوية.
           </p>
-          <ul className="footer__social" aria-label="حساباتنا">
-            {socials.map((s) => (
-              <li key={s.label}>
-                <a href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label} onClick={ripple}>
-                  <Icon>{s.icon}</Icon>
-                </a>
-              </li>
-            ))}
-          </ul>
         </div>
 
         <div className="footer__col">
           <h3 className="footer__title">تواصل معنا</h3>
-          <ul className="footer__contact">
-            {contacts.map((c) => (
-              <li key={c.label}>
-                <Icon>{c.icon}</Icon>
-                {c.href ? (
-                  <a href={c.href} target={c.href.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer" dir={c.ltr ? "ltr" : undefined}>
-                    {c.label}
-                  </a>
-                ) : (
-                  <span>{c.label}</span>
-                )}
+          <ul className="footer__social" aria-label="حساباتنا">
+            {socials.map((s) => (
+              <li key={s.label}>
+                <a href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label} title={s.label} onClick={ripple}>
+                  <Icon>{s.icon}</Icon>
+                </a>
               </li>
             ))}
           </ul>
@@ -172,26 +137,20 @@ export function Footer() {
           <div className="footer__map">
             <iframe
               title="خريطة الرياض"
-              src="https://maps.google.com/maps?q=Riyadh,+Saudi+Arabia&t=&z=11&ie=UTF8&iwloc=&output=embed"
+              src="https://maps.google.com/maps?q=Riyadh,+Saudi+Arabia&t=&z=11&ie=UTF8&iwloc=B&output=embed"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
             />
-            <a
-              className="footer__pin"
-              href="https://www.google.com/maps/place/Riyadh+Saudi+Arabia"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="الرياض — افتح في خرائط Google"
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path
-                  fill="currentColor"
-                  d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z"
-                />
-              </svg>
-              <span>الرياض</span>
-            </a>
           </div>
+          <a className="footer__maplink" href={MAP_LINK} target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path
+                fill="currentColor"
+                d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z"
+              />
+            </svg>
+            افتح في خرائط Google
+          </a>
         </div>
       </div>
 
