@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { Eye } from "./Eye";
 import {
   DEFAULT_MESSAGE,
-  HOURS,
   INSTAGRAM_HANDLE,
   TIKTOK_HANDLE,
   whatsappLink,
@@ -118,18 +117,6 @@ export function Footer() {
               </li>
             ))}
           </ul>
-        </div>
-
-        <div className="footer__col">
-          <h3 className="footer__title">أوقات العمل</h3>
-          <dl className="footer__hours">
-            {HOURS.map(([day, time]) => (
-              <div key={day}>
-                <dt>{day}</dt>
-                <dd dir="ltr">{time}</dd>
-              </div>
-            ))}
-          </dl>
         </div>
 
         <div className="footer__col">
