@@ -12,4 +12,4 @@
 :HL["/BILAL/_next/static/media/f027cbd19bcdfae1-s.p.20e0unllyn65n.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/BILAL/_next/static/media/f0e0669539caf32a-s.p.2cslzs_83-cos.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 1:[["children",{"s":"__PAGE__","h":160}]]
-0:{"b":"47B9TyG9Tj8Evb56Tw6oI","t":{"t":{"s":"","h":80,"c":"$Q1"}}}
+0:{"b":"xEmlghDZlCUN0MCif0NGd","t":{"t":{"s":"","h":80,"c":"$Q1"}}}
