@@ -884,94 +884,27 @@ main {
     opacity: 1;
   }
 }
-/* 3D icon tile: a raised, lit block that tilts toward the viewer on hover. */
-.svc {
-  perspective: 600px;
-}
-.svc__badge {
-  display: grid;
-  place-items: center;
-  width: 68px;
-  height: 68px;
-  margin-bottom: 14px;
-  border-radius: 18px;
-  color: var(--red);
-  background:
-    radial-gradient(120% 90% at 30% 15%, rgba(255, 255, 255, 0.95), transparent 55%),
-    linear-gradient(160deg, #fffaf2, var(--beige) 95%);
-  box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.9),
-    inset 0 -4px 0 rgba(17, 17, 17, 0.12),
-    0 1px 0 #a8946f,
-    0 2px 0 #9c8865,
-    0 3px 0 #907c5b,
-    0 4px 0 #857152,
-    0 6px 0 #7a6749,
-    0 14px 18px rgba(17, 17, 17, 0.28),
-    0 22px 34px rgba(17, 17, 17, 0.14);
-  transform: rotateX(14deg) rotateY(-10deg) translateZ(0);
-  transform-style: preserve-3d;
-  transition:
-    transform 450ms var(--ease-out),
-    box-shadow 450ms var(--ease-out);
-}
+/* Flat icon straight on the card: red on plain cards, white on the lit one. */
 .svc__icon {
-  width: 34px;
-  height: 34px;
-  filter: drop-shadow(0 2px 0 rgba(110, 11, 20, 0.35)) drop-shadow(0 4px 4px rgba(17, 17, 17, 0.25));
-  transform: translateZ(18px);
+  width: 44px;
+  height: 44px;
+  margin-bottom: 14px;
+  color: var(--red);
+  transition:
+    color 350ms var(--ease-out),
+    transform 350ms var(--ease-out);
 }
-/* On the lit (red) card the tile turns to frosted white glass. */
-.svc:first-child .svc__badge,
-.svc:focus-visible .svc__badge {
+.svc:first-child .svc__icon,
+.svc:focus-visible .svc__icon {
   color: var(--white);
-  background:
-    radial-gradient(120% 90% at 30% 15%, rgba(255, 255, 255, 0.55), transparent 55%),
-    linear-gradient(160deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.08));
-  box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.6),
-    inset 0 -4px 0 rgba(0, 0, 0, 0.18),
-    0 1px 0 rgba(110, 11, 20, 0.9),
-    0 2px 0 rgba(100, 9, 18, 0.9),
-    0 3px 0 rgba(90, 8, 16, 0.9),
-    0 4px 0 rgba(80, 7, 14, 0.9),
-    0 6px 0 rgba(70, 6, 12, 0.9),
-    0 14px 18px rgba(0, 0, 0, 0.35),
-    0 22px 34px rgba(0, 0, 0, 0.2);
 }
 @media (hover: hover) and (pointer: fine) {
-  .svc-grid:hover .svc:first-child:not(:hover) .svc__badge {
+  .svc-grid:hover .svc:first-child:not(:hover) .svc__icon {
     color: var(--red);
-    background:
-      radial-gradient(120% 90% at 30% 15%, rgba(255, 255, 255, 0.95), transparent 55%),
-      linear-gradient(160deg, #fffaf2, var(--beige) 95%);
-    box-shadow:
-      inset 0 2px 0 rgba(255, 255, 255, 0.9),
-      inset 0 -4px 0 rgba(17, 17, 17, 0.12),
-      0 1px 0 #a8946f,
-      0 2px 0 #9c8865,
-      0 3px 0 #907c5b,
-      0 4px 0 #857152,
-      0 6px 0 #7a6749,
-      0 14px 18px rgba(17, 17, 17, 0.28),
-      0 22px 34px rgba(17, 17, 17, 0.14);
   }
-  .svc:hover .svc__badge {
+  .svc:hover .svc__icon {
     color: var(--white);
-    background:
-      radial-gradient(120% 90% at 30% 15%, rgba(255, 255, 255, 0.55), transparent 55%),
-      linear-gradient(160deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.08));
-    box-shadow:
-      inset 0 2px 0 rgba(255, 255, 255, 0.6),
-      inset 0 -4px 0 rgba(0, 0, 0, 0.18),
-      0 1px 0 rgba(110, 11, 20, 0.9),
-      0 2px 0 rgba(100, 9, 18, 0.9),
-      0 3px 0 rgba(90, 8, 16, 0.9),
-      0 4px 0 rgba(80, 7, 14, 0.9),
-      0 6px 0 rgba(70, 6, 12, 0.9),
-      0 20px 24px rgba(0, 0, 0, 0.35),
-      0 30px 40px rgba(0, 0, 0, 0.2);
-    transform: rotateX(-8deg) rotateY(14deg) translateY(-6px) scale(1.06);
+    transform: scale(1.08);
   }
 }
 .svc__title {
