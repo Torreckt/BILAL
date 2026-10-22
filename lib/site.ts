@@ -3,7 +3,6 @@ export const WHATSAPP_NUMBER = "966500000000"; // TODO: رقم الواتساب 
 export const INSTAGRAM_HANDLE = "mainstream"; // TODO: اسم الحساب الحقيقي
 export const TIKTOK_HANDLE = "mainstream"; // TODO: اسم حساب تيك توك الحقيقي
 export const EMAIL = "hello@mainstream.sa"; // TODO: الإيميل الحقيقي
-export const LOCATION = "الرياض، السعودية";
 // TODO: أوقات العمل الحقيقية
 export const HOURS: [string, string][] = [
   ["الأحد - الخميس", "09:00 - 18:00"],
