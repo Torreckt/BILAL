@@ -1,4 +1,4 @@
 :HL["/BILAL/_next/static/chunks/0zwgraou4xumh.css","style"]
 2:[["children",{"s":"__PAGE__","h":160}]]
 1:[["children",{"s":"/_not-found","h":96,"c":"$Q2"}]]
-0:{"b":"JE0afs3i9sGGtvuBHEKYu","t":{"t":{"s":"","h":80,"c":"$Q1"}}}
+0:{"b":"47B9TyG9Tj8Evb56Tw6oI","t":{"t":{"s":"","h":80,"c":"$Q1"}}}
