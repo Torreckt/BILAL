@@ -115,7 +115,6 @@ export function Hero() {
                   moveReticle(i);
                 }}
               >
-                <span className="frame__code">CAM {String(i + 1).padStart(2, "0")}</span>
                 <Eye className="frame__eye" />
                 <span className="frame__label">
                   <span
