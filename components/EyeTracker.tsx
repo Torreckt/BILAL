@@ -8,6 +8,8 @@ const MAX_Y = 5;
 const SMALL_SCREEN = "(max-width: 860px)";
 // Degrees of tilt away from the resting angle that push the pupils to the edge of the eye.
 const TILT_RANGE = 22;
+// After this long without pointer or tilt input, the hero eyes start looking around on their own.
+const IDLE_MS = 1500;
 
 type Target = (cx: number, cy: number) => { x: number; y: number };
 
@@ -21,17 +23,37 @@ export function EyeTracker() {
     const state = new WeakMap<Element, { x: number; y: number }>();
     let target: Target | null = null;
     let raf = 0;
+    let lastInput = -Infinity;
+    let heroVisible = false;
+    // Each hero eye wanders to its own random spot, holds it for a moment, then picks another.
+    const wander = new WeakMap<Element, { x: number; y: number; until: number }>();
+    const wanderTarget = (g: Element, now: number) => {
+      let w = wander.get(g);
+      if (!w || now > w.until) {
+        const a = Math.random() * Math.PI * 2;
+        const r = Math.random() < 0.25 ? 0 : 0.5 + Math.random() * 0.5;
+        w = { x: Math.cos(a) * MAX_X * r, y: Math.sin(a) * MAX_Y * r, until: now + 900 + Math.random() * 2200 };
+        wander.set(g, w);
+      }
+      return w;
+    };
 
     const tick = () => {
       raf = 0;
-      if (!target) return;
-      let moving = false;
+      const now = performance.now();
+      const idle = now - lastInput > IDLE_MS;
+      let moving = idle && heroVisible;
       document.querySelectorAll<SVGGElement>("[data-pupil]").forEach((g) => {
         const svg = g.ownerSVGElement;
         if (!svg) return;
         const r = svg.getBoundingClientRect();
         if (r.bottom < 0 || r.top > innerHeight) return;
-        const t = target!(r.left + r.width / 2, r.top + r.height * 0.44);
+        const inHero = !!svg.closest(".hero");
+        if (!target && !inHero) return;
+        const t =
+          inHero && (idle || !target)
+            ? wanderTarget(g, now)
+            : target!(r.left + r.width / 2, r.top + r.height * 0.44);
         const s = state.get(g) ?? { x: 0, y: 0 };
         s.x += (t.x - s.x) * 0.14;
         s.y += (t.y - s.y) * 0.14;
@@ -44,6 +66,18 @@ export function EyeTracker() {
     const kick = () => {
       if (!raf) raf = requestAnimationFrame(tick);
     };
+    const onInput = () => {
+      lastInput = performance.now();
+      kick();
+    };
+
+    // The wander loop only runs while the hero is on screen.
+    const hero = document.querySelector(".hero");
+    const io = new IntersectionObserver(([entry]) => {
+      heroVisible = entry.isIntersecting;
+      if (heroVisible) kick();
+    });
+    if (hero) io.observe(hero);
 
     // Large screens: each eye looks toward the cursor.
     const startPointer = () => {
@@ -60,7 +94,7 @@ export function EyeTracker() {
       const onMove = (e: PointerEvent) => {
         px = e.clientX;
         py = e.clientY;
-        kick();
+        onInput();
       };
       window.addEventListener("pointermove", onMove, { passive: true });
       return () => window.removeEventListener("pointermove", onMove);
@@ -90,7 +124,9 @@ export function EyeTracker() {
         const clamp = (v: number) => Math.max(-1, Math.min(1, v));
         nx = clamp((lr - rest.gamma) / TILT_RANGE);
         ny = clamp((ud - rest.beta) / TILT_RANGE);
-        kick();
+        // Tiny sensor jitter while the phone lies still shouldn't stop the hero eyes wandering.
+        if (Math.abs(nx) > 0.08 || Math.abs(ny) > 0.08) onInput();
+        else kick();
       };
       const listen = () => window.addEventListener("deviceorientation", onOrient);
 
@@ -122,6 +158,7 @@ export function EyeTracker() {
     small.addEventListener("change", start);
     return () => {
       small.removeEventListener("change", start);
+      io.disconnect();
       stop();
       cancelAnimationFrame(raf);
     };

@@ -574,6 +574,31 @@ html {
   height: auto;
   transition: transform 260ms var(--ease-out);
 }
+/* Hero eyes blink now and then, each on its own rhythm. */
+[data-motion="ok"] .frame__eye {
+  animation: blink 5.2s infinite;
+}
+[data-motion="ok"] .frame:nth-child(2n) .frame__eye {
+  animation-duration: 6.7s;
+  animation-delay: -2.1s;
+}
+[data-motion="ok"] .frame:nth-child(3n) .frame__eye {
+  animation-duration: 4.4s;
+  animation-delay: -3.3s;
+}
+[data-motion="ok"] .frame:nth-child(4n + 1) .frame__eye {
+  animation-delay: -1.2s;
+}
+@keyframes blink {
+  0%,
+  93%,
+  100% {
+    scale: 1 1;
+  }
+  96% {
+    scale: 1 0.08;
+  }
+}
 .frame__label {
   display: block;
   width: 88%;
