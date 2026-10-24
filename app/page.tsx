@@ -1,10 +1,11 @@
 import { Nav } from "@/components/Nav";
 import { Hero } from "@/components/Hero";
-import { CaseFiles } from "@/components/CaseFiles";
+import { ServiceCards } from "@/components/ServiceCards";
 import { EyeTracker } from "@/components/EyeTracker";
 import { Eye, Wave } from "@/components/Eye";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
-import { cafePackage, roles, INSTAGRAM_HANDLE, TIKTOK_HANDLE, DEFAULT_MESSAGE, whatsappLink } from "@/lib/site";
+import { Footer } from "@/components/Footer";
+import { cafePackage, roles } from "@/lib/site";
 
 function Stream() {
   const phrase = (
@@ -23,9 +24,15 @@ function Stream() {
   );
   return (
     <div className="stream" aria-hidden="true">
+      {/* Two identical halves, each wider than any screen, so the loop never shows a gap. */}
       <div className="stream__track">
-        <div className="stream__run">{phrase}</div>
-        <div className="stream__run">{phrase}</div>
+        {[0, 1].map((half) => (
+          <div className="stream__run" key={half}>
+            {phrase}
+            {phrase}
+            {phrase}
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -34,7 +41,7 @@ function Stream() {
 function Services() {
   return (
     <section id="services" className="section services" aria-labelledby="services-title">
-      <div className="wrap services__grid">
+      <div className="wrap">
         <div className="services__intro">
           <h2 id="services-title" className="display display--md">
             وش نسوي لك؟
@@ -46,7 +53,7 @@ function Services() {
             اسألنا عن خدمة
           </WhatsAppButton>
         </div>
-        <CaseFiles />
+        <ServiceCards />
       </div>
     </section>
   );
@@ -141,14 +148,8 @@ function Packages() {
 
           <div className="dossier__foot">
             <div className="dossier__ads">
-              <h4>إعلانات مدفوعة ضمن الباقة</h4>
-              <ol>
-                {cafePackage.ads.map((a) => (
-                  <li key={a}>
-                    إعلان مدفوع في <span dir="ltr">{a}</span>
-                  </li>
-                ))}
-              </ol>
+              <h4>الإعلانات المدفوعة</h4>
+              <p>{cafePackage.ad}</p>
             </div>
 
             <aside className="gift" aria-label="هدية الوكالة">
@@ -278,85 +279,6 @@ function Finale() {
         </p>
       </div>
     </section>
-  );
-}
-
-const socials = [
-  {
-    label: "TikTok",
-    href: `https://www.tiktok.com/@${TIKTOK_HANDLE}`,
-    icon: (
-      <path
-        fill="currentColor"
-        d="M16.6 2h-3.4v13.3a2.9 2.9 0 1 1-2.9-2.9c.3 0 .6 0 .9.1V9a6.4 6.4 0 1 0 5.4 6.3V8.6a8.2 8.2 0 0 0 4.8 1.5V6.7a4.8 4.8 0 0 1-4.8-4.7Z"
-      />
-    ),
-  },
-  {
-    label: "Instagram",
-    href: `https://instagram.com/${INSTAGRAM_HANDLE}`,
-    icon: (
-      <g fill="none" stroke="currentColor" strokeWidth="2">
-        <rect x="3" y="3" width="18" height="18" rx="5" />
-        <circle cx="12" cy="12" r="4" />
-        <circle cx="17.5" cy="6.5" r="0.6" fill="currentColor" stroke="none" />
-      </g>
-    ),
-  },
-  {
-    label: "WhatsApp",
-    href: whatsappLink(DEFAULT_MESSAGE),
-    icon: (
-      <path
-        fill="currentColor"
-        d="M12 2.2a9.7 9.7 0 0 0-8.4 14.6L2.3 21.7l5-1.3A9.7 9.7 0 1 0 12 2.2Zm0 17.7c-1.5 0-2.9-.4-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 19.9Zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.8.9c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1c0 1.2.9 2.4 1 2.6.1.2 1.8 2.7 4.3 3.8 1.6.7 2.2.7 3 .6.5-.1 1.4-.6 1.6-1.2.2-.6.2-1.1.1-1.2l-.5-.4Z"
-      />
-    ),
-  },
-];
-
-function Footer() {
-  return (
-    <footer className="footer">
-      <div className="wrap footer__inner">
-        <div className="footer__brand">
-          <Eye className="footer__eye" tone="light" />
-          <p className="footer__word" dir="ltr">
-            Main<span>stream</span>
-          </p>
-          <p className="footer__line" dir="ltr">
-            We create the hype. You own the spotlight.
-          </p>
-        </div>
-        <ul className="footer__links">
-          <li>
-            <a href="#services">الخدمات</a>
-          </li>
-          <li>
-            <a href="#packages">الباقات</a>
-          </li>
-          <li>
-            <a href={`https://instagram.com/${INSTAGRAM_HANDLE}`} target="_blank" rel="noopener noreferrer" dir="ltr">
-              @{INSTAGRAM_HANDLE}
-            </a>
-          </li>
-        </ul>
-        <ul className="footer__social" aria-label="حساباتنا">
-          {socials.map((s) => (
-            <li key={s.label}>
-              <a href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label}>
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                  {s.icon}
-                </svg>
-              </a>
-            </li>
-          ))}
-        </ul>
-        <p className="footer__meta" dir="ltr">
-          RIYADH · KSA — © 2026 Mainstream
-        </p>
-      </div>
-    </footer>
   );
 }
 
