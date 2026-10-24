@@ -787,6 +787,8 @@ main {
   margin-inline: -20px;
   position: relative;
   z-index: 2;
+  /* Anchor the track at the left edge so the next copy is always entering from the right. */
+  direction: ltr;
 }
 .stream__track {
   display: flex;
@@ -815,7 +817,7 @@ main {
   flex: none;
 }
 [data-motion="ok"] .stream__track {
-  animation: stream 38s linear infinite;
+  animation: stream 114s linear infinite;
 }
 @keyframes stream {
   to {

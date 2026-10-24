@@ -24,9 +24,15 @@ function Stream() {
   );
   return (
     <div className="stream" aria-hidden="true">
+      {/* Two identical halves, each wider than any screen, so the loop never shows a gap. */}
       <div className="stream__track">
-        <div className="stream__run">{phrase}</div>
-        <div className="stream__run">{phrase}</div>
+        {[0, 1].map((half) => (
+          <div className="stream__run" key={half}>
+            {phrase}
+            {phrase}
+            {phrase}
+          </div>
+        ))}
       </div>
     </div>
   );
