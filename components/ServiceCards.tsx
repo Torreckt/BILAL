@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import { caseFiles } from "@/lib/site";
 
 // One line icon per service, keyed by case file id.
@@ -31,10 +34,27 @@ const icons: Record<string, React.ReactNode> = {
 };
 
 export function ServiceCards() {
+  const listRef = useRef<HTMLUListElement>(null);
+  const [lit, setLit] = useState<number | null>(null);
+
+  // Touch screens have no hover, so the red highlight follows the card scrolled into the middle of the screen.
+  useEffect(() => {
+    if (!matchMedia("(hover: none), (pointer: coarse)").matches) return;
+    const cards = Array.from(listRef.current?.children ?? []);
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) if (e.isIntersecting) setLit(cards.indexOf(e.target));
+      },
+      { rootMargin: "-45% 0px -45% 0px" },
+    );
+    cards.forEach((c) => io.observe(c));
+    return () => io.disconnect();
+  }, []);
+
   return (
-    <ul className="svc-grid">
-      {caseFiles.map((f) => (
-        <li key={f.id} className="svc" tabIndex={0}>
+    <ul ref={listRef} className={`svc-grid ${lit !== null ? "has-lit" : ""}`}>
+      {caseFiles.map((f, i) => (
+        <li key={f.id} className={`svc ${lit === i ? "is-lit" : ""}`} tabIndex={0}>
           <svg className="svc__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             {icons[f.id]}
           </svg>
