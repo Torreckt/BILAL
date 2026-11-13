@@ -1,6 +1,6 @@
 // Contact details — replace the placeholders before going live.
-export const WHATSAPP_NUMBER = "966500000000"; // TODO: رقم الواتساب الحقيقي بالصيغة الدولية بدون +
-export const INSTAGRAM_HANDLE = "mainstream"; // TODO: اسم الحساب الحقيقي
+export const WHATSAPP_NUMBER = "966594357444"; // 0594357444 بالصيغة الدولية بدون +
+export const INSTAGRAM_HANDLE = "sa.mainstream";
 export const TIKTOK_HANDLE = "mainstream"; // TODO: اسم حساب تيك توك الحقيقي
 
 export function whatsappLink(message: string) {
@@ -203,12 +203,12 @@ export const faqs = [
 
 export type ContactIntent = "meeting" | "quote" | "inquiry" | "partner";
 
-// Request types in the contact form, with the opening line of the WhatsApp message each one sends.
-export const contactIntents: { id: ContactIntent; label: string; opener: string }[] = [
-  { id: "meeting", label: "احجز اجتماع", opener: "هلا ماين ستريم، أبغى أحجز اجتماع." },
-  { id: "quote", label: "اطلب عرض سعر", opener: "هلا ماين ستريم، أبغى عرض سعر." },
-  { id: "inquiry", label: "استفسار", opener: "هلا ماين ستريم، عندي استفسار." },
-  { id: "partner", label: "تعاون وشراكة", opener: "هلا ماين ستريم، عندي فكرة تعاون أو شراكة." },
+// Request types in the contact form, with the title and opening line of the WhatsApp message each one sends.
+export const contactIntents: { id: ContactIntent; label: string; title: string; opener: string }[] = [
+  { id: "meeting", label: "احجز اجتماع", title: "📅 *طلب حجز اجتماع*", opener: "أبغى أحجز اجتماع مع فريقكم." },
+  { id: "quote", label: "اطلب عرض سعر", title: "🧾 *طلب عرض سعر*", opener: "أبغى عرض سعر للخدمات التالية." },
+  { id: "inquiry", label: "استفسار", title: "💬 *استفسار*", opener: "عندي استفسار." },
+  { id: "partner", label: "تعاون وشراكة", title: "🤝 *طلب تعاون وشراكة*", opener: "عندي فكرة تعاون أو شراكة." },
 ];
 
 export const meetingTypes = ["اجتماع أونلاين", "اجتماع حضوري", "مكالمة هاتفية"];

@@ -50,26 +50,50 @@ export function ContactForm() {
       return;
     }
     const f = new FormData(e.currentTarget);
-    const line = (label: string, key: string) => {
-      const v = String(f.get(key) ?? "").trim();
-      return v ? `${label}: ${v}` : null;
+    const get = (key: string) => String(f.get(key) ?? "").trim();
+    const meta = contactIntents.find((c) => c.id === intent)!;
+    const day = get("day");
+    const dayText = day
+      ? new Date(`${day}T12:00`).toLocaleDateString("ar-SA-u-ca-gregory-nu-latn", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+        })
+      : "";
+
+    // A WhatsApp-ready template: bold section titles, one detail per line, empty sections left out.
+    const section = (title: string, rows: [string, string][]) => {
+      const filled = rows.filter(([, v]) => v);
+      return filled.length ? [`*${title}*`, ...filled.map(([k, v]) => `• ${k}: ${v}`), ""] : [];
     };
-    const day = String(f.get("day") ?? "");
+    const block = (title: string, body: string) => (body ? [`*${title}*`, body, ""] : []);
+
     const msg = [
-      contactIntents.find((c) => c.id === intent)!.opener,
+      meta.title,
       "",
-      line("الاسم", "name"),
-      line("رقم التواصل", "phone"),
-      line("اسم النشاط", "business"),
-      line("نوع النشاط", "sector"),
-      intent === "meeting" ? line("نوع الاجتماع", "meetingType") : null,
-      intent === "meeting" && day ? `اليوم المناسب: ${new Date(`${day}T12:00`).toLocaleDateString("ar-SA-u-ca-gregory-nu-latn", { weekday: "long", day: "numeric", month: "long" })}` : null,
-      intent === "meeting" ? line("الوقت المناسب", "time") : null,
-      intent === "quote" ? `الخدمات: ${picked.join("، ")}` : null,
-      line(intent === "inquiry" || intent === "partner" ? "الرسالة" : "تفاصيل", "notes"),
-    ]
-      .filter((l) => l !== null)
-      .join("\n");
+      `هلا ماين ستريم 👋 ${meta.opener}`,
+      "",
+      ...section("بيانات التواصل", [
+        ["الاسم", get("name")],
+        ["الجوال", get("phone")],
+      ]),
+      ...section("عن النشاط", [
+        ["اسم النشاط", get("business")],
+        ["نوع النشاط", get("sector")],
+      ]),
+      ...(intent === "meeting"
+        ? section("تفاصيل الاجتماع", [
+            ["نوع الاجتماع", get("meetingType")],
+            ["اليوم المناسب", dayText],
+            ["الوقت المناسب", get("time") || "أي وقت"],
+          ])
+        : []),
+      ...(intent === "quote" ? ["*الخدمات المطلوبة*", ...picked.map((t, i) => `${i + 1}. ${t}`), ""] : []),
+      ...(intent === "inquiry" ? block("الاستفسار", get("notes")) : []),
+      ...(intent === "partner" ? block("فكرة التعاون", get("notes")) : []),
+      ...(intent === "meeting" || intent === "quote" ? block("تفاصيل إضافية", get("notes")) : []),
+      "_مرسل من موقع ماين ستريم_",
+    ].join("\n");
     window.open(whatsappLink(msg), "_blank", "noopener,noreferrer");
   }
 
