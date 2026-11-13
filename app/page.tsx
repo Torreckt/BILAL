@@ -5,7 +5,7 @@ import { EyeTracker } from "@/components/EyeTracker";
 import { Eye, Wave } from "@/components/Eye";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { Footer } from "@/components/Footer";
-import { cafePackage, roles } from "@/lib/site";
+import { roles } from "@/lib/site";
 
 function Stream() {
   const phrase = (
@@ -101,99 +101,6 @@ function OneSalary() {
             <p className="ledger__note">بنفس الراتب</p>
           </figure>
         </div>
-      </div>
-    </section>
-  );
-}
-
-function Packages() {
-  const msg = "هلا ماين ستريم، أبغى أحجز باقة الكوفيهات.";
-  return (
-    <section id="packages" className="section packages" aria-labelledby="packages-title">
-      <p className="ghost ghost--cafe" aria-hidden="true">
-        CAFÉ
-      </p>
-      <div className="wrap">
-        <h2 id="packages-title" className="display display--md packages__title">
-          الباقات
-        </h2>
-
-        <article className="dossier" aria-labelledby="cafe-title">
-          <header className="dossier__head">
-            <h3 id="cafe-title" className="dossier__title">
-              باقة الكوفيهات
-            </h3>
-            <p className="dossier__ribbon">
-              <span className="tag tag--red">تسويق + تدريب + متابعة..</span>
-              <span className="tag tag--red">في باقة وحدة</span>
-            </p>
-            <p className="dossier__stamp" aria-hidden="true" dir="ltr">
-              WATCH US.
-            </p>
-          </header>
-
-          <div className="dossier__body">
-            {cafePackage.blocks.map((b) => (
-              <section key={b.title} className="dossier__block">
-                <h4>{b.title}</h4>
-                {"note" in b && b.note ? <p className="dossier__note">{b.note}</p> : null}
-                <ul>
-                  {b.items.map((it) => (
-                    <li key={it}>{it}</li>
-                  ))}
-                </ul>
-              </section>
-            ))}
-          </div>
-
-          <div className="dossier__foot">
-            <div className="dossier__ads">
-              <h4>الإعلانات المدفوعة</h4>
-              <p>{cafePackage.ad}</p>
-            </div>
-
-            <aside className="gift" aria-label="هدية الوكالة">
-              <p className="tag tag--red gift__tag">هدية الوكالة</p>
-              <p className="gift__title">أسبوع مجاني إضافي</p>
-              <p className="gift__text">
-                لكل مشترك جديد في أول شهر: أسبوع كامل نقدّم فيه الخدمات والاستشارات ومتابعة إنتاجية المحل..
-                مجاناً.
-              </p>
-            </aside>
-
-            <div className="price">
-              <div className="price__tag">
-                <p className="price__label">سعر الباقة</p>
-                <p className="price__value">
-                  <span dir="ltr">{cafePackage.price}</span> ريال
-                </p>
-              </div>
-              <WhatsAppButton variant="ink" message={msg}>
-                احجز الباقة
-              </WhatsAppButton>
-            </div>
-          </div>
-        </article>
-
-        <article className="teamplan" aria-labelledby="teamplan-title">
-          <div className="teamplan__copy">
-            <h3 id="teamplan-title" className="teamplan__title">
-              فريقك التسويقي المتكامل
-            </h3>
-            <p className="tag tag--paper teamplan__ribbon">براتب موظف واحد.</p>
-            <p className="teamplan__text">
-              لأي نشاط، مو بس الكوفيهات. نبني الفريق على حجم شغلك، ونعطيك السعر في أول اجتماع.
-            </p>
-            <WhatsAppButton variant="red" message="هلا ماين ستريم، أبغى أعرف سعر باقة الفريق المتكامل.">
-              اطلب السعر
-            </WhatsAppButton>
-          </div>
-          <ul className="teamplan__roles">
-            {roles.map((r) => (
-              <li key={r}>{r}</li>
-            ))}
-          </ul>
-        </article>
       </div>
     </section>
   );
@@ -295,7 +202,6 @@ export default function Home() {
         <Stream />
         <Services />
         <OneSalary />
-        <Packages />
         <Watchlist />
         <Process />
         <Finale />

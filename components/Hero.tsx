@@ -83,8 +83,8 @@ export function Hero() {
         </p>
         <div className="hero__actions">
           <WhatsAppButton size="lg">احجز اجتماعك على واتساب</WhatsAppButton>
-          <a className="text-link" href="#packages">
-            شوف الباقات والأسعار
+          <a className="text-link" href="#services">
+            شوف خدماتنا
           </a>
         </div>
       </div>

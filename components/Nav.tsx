@@ -7,7 +7,6 @@ import { WhatsAppButton } from "./WhatsAppButton";
 const links = [
   { href: "#services", label: "الخدمات" },
   { href: "#team", label: "الفريق" },
-  { href: "#packages", label: "الباقات" },
   { href: "#process", label: "كيف نشتغل" },
 ];
 
