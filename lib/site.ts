@@ -1,7 +1,7 @@
 // Contact details — replace the placeholders before going live.
 export const WHATSAPP_NUMBER = "966594357444"; // 0594357444 بالصيغة الدولية بدون +
 export const INSTAGRAM_HANDLE = "sa.mainstream";
-export const TIKTOK_HANDLE = "mainstream"; // TODO: اسم حساب تيك توك الحقيقي
+export const TIKTOK_HANDLE = "sa.mainstream";
 
 export function whatsappLink(message: string) {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
