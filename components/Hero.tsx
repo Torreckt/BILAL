@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Eye } from "./Eye";
-import { WhatsAppButton } from "./WhatsAppButton";
+import { ContactButton } from "./ContactButton";
 import { roles } from "@/lib/site";
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -82,7 +82,7 @@ export function Hero() {
           <strong>نصنع الضجة.. وأنت تملك الأضواء.</strong>
         </p>
         <div className="hero__actions">
-          <WhatsAppButton size="lg">احجز اجتماعك على واتساب</WhatsAppButton>
+          <ContactButton size="lg">احجز اجتماعك</ContactButton>
           <a className="text-link" href="#services">
             شوف خدماتنا
           </a>

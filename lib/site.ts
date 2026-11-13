@@ -200,3 +200,16 @@ export const faqs = [
     a: "راسلنا على واتساب أو عبّ نموذج طلب عرض السعر، ونحدد معك موعد اجتماع يناسبك.",
   },
 ];
+
+export type ContactIntent = "meeting" | "quote" | "inquiry" | "partner";
+
+// Request types in the contact form, with the opening line of the WhatsApp message each one sends.
+export const contactIntents: { id: ContactIntent; label: string; opener: string }[] = [
+  { id: "meeting", label: "احجز اجتماع", opener: "هلا ماين ستريم، أبغى أحجز اجتماع." },
+  { id: "quote", label: "اطلب عرض سعر", opener: "هلا ماين ستريم، أبغى عرض سعر." },
+  { id: "inquiry", label: "استفسار", opener: "هلا ماين ستريم، عندي استفسار." },
+  { id: "partner", label: "تعاون وشراكة", opener: "هلا ماين ستريم، عندي فكرة تعاون أو شراكة." },
+];
+
+export const meetingTypes = ["اجتماع أونلاين", "اجتماع حضوري", "مكالمة هاتفية"];
+export const meetingTimes = ["الصباح", "الظهر", "العصر", "المساء"];

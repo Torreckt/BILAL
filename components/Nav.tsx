@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { Eye } from "./Eye";
-import { WhatsAppButton } from "./WhatsAppButton";
+import { ContactButton } from "./ContactButton";
 
 const links = [
   { href: "#services", label: "الخدمات" },
   { href: "#why", label: "ليش ماين ستريم" },
   { href: "#process", label: "كيف نشتغل" },
-  { href: "#quote", label: "اطلب عرض" },
+  { href: "#contact", label: "تواصل معنا" },
 ];
 
 export function Nav() {
@@ -58,9 +58,9 @@ export function Nav() {
             ))}
           </ul>
         </nav>
-        <WhatsAppButton variant="ink" className="nav__cta">
+        <ContactButton variant="ink" className="nav__cta">
           احجز اجتماع
-        </WhatsAppButton>
+        </ContactButton>
         <button
           type="button"
           className="nav__toggle"
