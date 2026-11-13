@@ -12,10 +12,44 @@ const icons: Record<string, React.ReactNode> = {
       <path d="M8 21h8M12 17v4" strokeLinecap="round" />
     </g>
   ),
-  ads: (
+  marketing: (
     <g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round">
       <path d="M4 10v4h3l7 4V6L7 10H4Z" />
       <path d="M17.5 9a4 4 0 0 1 0 6M7 14l1.5 5h2.5L10 15" />
+    </g>
+  ),
+  content: (
+    <g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round">
+      <path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3Z" />
+      <path d="m14.5 7.5 2 2M13 20h7" />
+    </g>
+  ),
+  photo: (
+    <g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round">
+      <path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.8l1.5-2.2h6.4L16.7 7h2.8A1.5 1.5 0 0 1 21 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5v-9Z" />
+      <circle cx="12" cy="13" r="3.6" />
+    </g>
+  ),
+  video: (
+    <g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round">
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M3 9h18M7.5 5l2 4M12.5 5l2 4M17.5 5l2 4" />
+      <path d="m10.5 12 4 2.2-4 2.2v-4.4Z" fill="currentColor" />
+    </g>
+  ),
+  web: (
+    <g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round">
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M3 8.5h18" />
+      <circle cx="6" cy="6.3" r="0.6" fill="currentColor" stroke="none" />
+      <circle cx="8.2" cy="6.3" r="0.6" fill="currentColor" stroke="none" />
+      <path d="m9.5 12-2.5 2.5 2.5 2.5M14.5 12l2.5 2.5-2.5 2.5" />
+    </g>
+  ),
+  training: (
+    <g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round">
+      <path d="M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9Z" />
+      <path d="M16 10.5h1.5a2.5 2.5 0 0 1 0 5H16M8 3.5c-.6.8-.6 1.7 0 2.5M12 3.5c-.6.8-.6 1.7 0 2.5" />
     </g>
   ),
   influence: (

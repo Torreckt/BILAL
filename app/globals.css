@@ -843,7 +843,7 @@ main {
 }
 .svc-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: clamp(16px, 2vw, 28px);
 }
 /* The first card is lit by default; on pointer devices the light follows the hovered card. */

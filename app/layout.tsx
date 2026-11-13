@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   title: "ماين ستريم | Mainstream — وكالة تسويق في الرياض",
   description:
-    "فريقك التسويقي المتكامل براتب موظف واحد: سوشال ميديا، تصوير وريلز، إعلانات مدفوعة، مؤثرين، وهوية. نصنع الضجة.. وأنت تملك الأضواء.",
+    "وكالة تسويق متكاملة في الرياض: تسويق وإعلانات، سوشال ميديا، كتابة محتوى، تصوير، مونتاج، تصميم مواقع، هوية، وتدريب الكوفيهات. نصنع الضجة.. وأنت تملك الأضواء.",
   openGraph: {
     title: "Mainstream — We create the hype. You own the spotlight.",
     description: "وكالة تسويق في الرياض. فريقك التسويقي المتكامل براتب موظف واحد.",
