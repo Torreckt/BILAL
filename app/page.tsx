@@ -5,7 +5,8 @@ import { EyeTracker } from "@/components/EyeTracker";
 import { Eye, Wave } from "@/components/Eye";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { Footer } from "@/components/Footer";
-import { roles } from "@/lib/site";
+import { QuoteForm } from "@/components/QuoteForm";
+import { faqs, reasons, roles, sectors } from "@/lib/site";
 
 function Stream() {
   const phrase = (
@@ -169,6 +170,96 @@ function Process() {
   );
 }
 
+function Why() {
+  return (
+    <section id="why" className="why" aria-labelledby="why-title">
+      <p className="ghost ghost--why" aria-hidden="true">
+        WHY
+      </p>
+      <div className="wrap">
+        <div className="why__head">
+          <h2 id="why-title" className="display display--md display--paper">
+            ليش ماين ستريم؟
+          </h2>
+          <p className="tag tag--red">WATCH US</p>
+        </div>
+        <ol className="why__list">
+          {reasons.map((r, i) => (
+            <li key={r.title} className="why__item">
+              <span className="why__num" dir="ltr">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <h3>{r.title}</h3>
+              <p>{r.text}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  );
+}
+
+function Sectors() {
+  return (
+    <section id="sectors" className="section sectors" aria-labelledby="sectors-title">
+      <div className="wrap sectors__grid">
+        <div>
+          <h2 id="sectors-title" className="display display--md">
+            نشتغل مع
+          </h2>
+          <p className="lede sectors__lede">أي نشاط يبي يكبر، من الكوفي الصغير للشركة. هذي بعض القطاعات اللي نخدمها:</p>
+        </div>
+        <ul className="sectors__list">
+          {sectors.map((s) => (
+            <li key={s}>{s}</li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
+function Quote() {
+  return (
+    <section id="quote" className="section quote" aria-labelledby="quote-title">
+      <div className="wrap quote__grid">
+        <div className="quote__intro">
+          <h2 id="quote-title" className="display display--md">
+            اطلب عرض سعر
+          </h2>
+          <p className="lede">
+            عبّ النموذج واختر الخدمات اللي تحتاجها. بتنفتح لك رسالة واتساب جاهزة فيها كل التفاصيل، وترسلها لنا بضغطة.
+          </p>
+          <p className="tag tag--ink">نرد عليك ونحدد موعد اجتماع</p>
+        </div>
+        <div className="quote__sheet">
+          <QuoteForm />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Faq() {
+  return (
+    <section id="faq" className="section faq" aria-labelledby="faq-title">
+      <div className="wrap faq__grid">
+        <h2 id="faq-title" className="display display--md">
+          الأسئلة الشائعة
+        </h2>
+        <div className="faq__list">
+          {faqs.map((f) => (
+            <details key={f.q} className="faq__item">
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Finale() {
   return (
     <section className="finale" aria-labelledby="finale-title">
@@ -201,9 +292,13 @@ export default function Home() {
         <Hero />
         <Stream />
         <Services />
+        <Why />
         <OneSalary />
+        <Sectors />
         <Watchlist />
         <Process />
+        <Quote />
+        <Faq />
         <Finale />
       </main>
       <Footer />
