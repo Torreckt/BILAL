@@ -1,4 +1,4 @@
-:HL["/BILAL/v2/_next/static/chunks/0y6w4c7me1mah.css","style"]
+:HL["/BILAL/v2/_next/static/chunks/3x1vq3wk0f55t.css","style"]
 2:[["children",{"s":"__PAGE__","h":160}]]
 1:[["children",{"s":"/_not-found","h":96,"c":"$Q2"}]]
-0:{"b":"Vf_sWj5AyozNkGxQ9kIFl","t":{"t":{"s":"","h":80,"c":"$Q1"}}}
+0:{"b":"z16zZJJUvX8zmUjqx7Lgc","t":{"t":{"s":"","h":80,"c":"$Q1"}}}
