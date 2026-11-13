@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     "وكالة تسويق متكاملة في الرياض: تسويق وإعلانات، سوشال ميديا، كتابة محتوى، تصوير، مونتاج، تصميم مواقع، هوية، وتدريب الكوفيهات. نصنع الضجة.. وأنت تملك الأضواء.",
   openGraph: {
     title: "Mainstream — We create the hype. You own the spotlight.",
-    description: "وكالة تسويق في الرياض. فريقك التسويقي المتكامل براتب موظف واحد.",
+    description: "وكالة تسويق متكاملة في الرياض. نصنع الضجة.. وأنت تملك الأضواء.",
     images: ["/brand/logo-primary.png"],
     locale: "ar_SA",
     type: "website",

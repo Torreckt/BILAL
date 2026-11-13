@@ -79,7 +79,7 @@ export function Hero() {
         </h1>
         <p className="hero__lede">
           تسعة متخصصين يشتغلون على نشاطك من الرياض: تسويق، محتوى، تصوير، مونتاج، مواقع، وهوية.{" "}
-          <strong>براتب موظف واحد.</strong>
+          <strong>نصنع الضجة.. وأنت تملك الأضواء.</strong>
         </p>
         <div className="hero__actions">
           <WhatsAppButton size="lg">احجز اجتماعك على واتساب</WhatsAppButton>
@@ -135,9 +135,9 @@ export function Hero() {
             <span className="reticle__corner reticle__corner--br" />
             <span className="reticle__cross" />
           </div>
-          <p className="stamp">براتب موظف واحد.</p>
+          <p className="stamp">نصنع الضجة.</p>
         </div>
-        <p className="hero__side">وكالة تسويق كاملة تشتغل لك براتب موظف واحد</p>
+        <p className="hero__side">وكالة تسويق متكاملة، كل شي تحت سقف واحد</p>
       </div>
       </div>
     </section>

@@ -1127,7 +1127,6 @@ main {
   }
   .salary__vs {
     justify-self: center;
-    transform: rotate(90deg);
   }
 }
 

@@ -72,22 +72,22 @@ function OneSalary() {
             عين وحدة.. ولا تسع عيون؟
           </h2>
           <p className="salary__text">
-            لو توظّف مسوّق واحد، تاخذ عين وحدة على نشاطك. مع ماين ستريم نفس الراتب يشغّل لك فريق كامل،
-            كل واحد متخصص في شغلته.
+            لو تعتمد على شخص واحد، تاخذ عين وحدة على نشاطك. مع ماين ستريم يشتغل لك فريق كامل، كل واحد
+            متخصص في شغلته، وكلهم تحت سقف واحد.
           </p>
           <p className="tag tag--ink salary__tag">تصميم · محتوى · تصوير · إعلانات · نتائج</p>
         </div>
 
         <div className="salary__compare">
           <figure className="ledger ledger--one">
-            <figcaption className="ledger__head">موظف واحد</figcaption>
+            <figcaption className="ledger__head">شخص واحد</figcaption>
             <div className="ledger__eyes ledger__eyes--one">
               <Eye className="ledger__eye" />
             </div>
-            <p className="ledger__note">شخص واحد يحاول يسوي كل شي</p>
+            <p className="ledger__note">يحاول يسوي كل شي</p>
           </figure>
-          <span className="salary__vs" aria-hidden="true">
-            =
+          <span className="salary__vs" aria-hidden="true" dir="ltr">
+            VS
           </span>
           <figure className="ledger ledger--team">
             <figcaption className="ledger__head">فريق ماين ستريم</figcaption>
@@ -99,7 +99,7 @@ function OneSalary() {
                 </li>
               ))}
             </ul>
-            <p className="ledger__note">بنفس الراتب</p>
+            <p className="ledger__note">كل واحد متخصص في شغلته</p>
           </figure>
         </div>
       </div>
