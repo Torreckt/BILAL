@@ -1,7 +1,8 @@
 import { Footer } from "@/components/Footer";
 import { Nav } from "@/components/Nav";
 import { JsonLd } from "@/components/JsonLd";
-import { getLinks, getServices } from "@/lib/content";
+import { getServices } from "@/lib/content";
+import { getLinks } from "@/lib/settings";
 import { env } from "@/lib/env";
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {

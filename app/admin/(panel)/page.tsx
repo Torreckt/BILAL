@@ -3,8 +3,8 @@ import { CONTENT_ROLES, REQUEST_ROLES } from "@/lib/roles";
 import { contentCounts } from "@/lib/admin/content";
 import { recentRequests, requestStats } from "@/lib/admin/requests";
 import { eventCounts } from "@/lib/events";
-import { intentLabel, statusLabels } from "@/lib/intents";
-import { Badge, Flash, statusTone, when, type Search } from "../ui";
+import { intentNoun, statusLabels } from "@/lib/intents";
+import { Badge, Flash, statusTone, formatDateTime, type Search } from "../ui";
 
 export default async function Overview({ searchParams }: { searchParams: Search }) {
   const user = await requireUser();
@@ -69,9 +69,9 @@ export default async function Overview({ searchParams }: { searchParams: Search 
                     <a href={`/admin/requests/${r.id}`}>
                       <span className="adm-ref" dir="ltr">{r.ref}</span>
                       <span>{r.name}</span>
-                      <span className="adm-muted">{intentLabel(r.type)}</span>
+                      <span className="adm-muted">{intentNoun(r.type)}</span>
                       <Badge tone={statusTone(r.status)}>{statusLabels[r.status]}</Badge>
-                      <time className="adm-muted">{when(r.created_at)}</time>
+                      <time className="adm-muted">{formatDateTime(r.created_at)}</time>
                     </a>
                   </li>
                 ))}

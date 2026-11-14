@@ -1,16 +1,18 @@
 // Fast checks that need no database or server. Usage: npm test
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { test } from "node:test";
-import { field, fieldLines, publishState, redirectWithMessage } from "../app/admin/actions/form";
+import { formField, formFieldLines, publishState, redirectWithMessage } from "../app/admin/actions/form";
 import { JsonLd, breadcrumbs } from "../components/JsonLd";
 import { fingerprint, hashPassword, verifyPassword } from "../lib/crypto";
 import { riyadhToday } from "../lib/dates";
 import { parseRequestFilters } from "../lib/admin/requests";
 import { reconcileWorkMedia } from "../lib/admin/work-media";
 import type { MediaItem } from "../lib/content";
-import { intentLabel, isContactIntent, isRequestStatus, statusesFor } from "../lib/intents";
+import { intentNoun, isContactIntent, isRequestStatus, statusesFor } from "../lib/intents";
 import { isRole } from "../lib/roles";
-import { parseRequest } from "../lib/requests";
+import { parseRequest } from "../lib/intake";
+import { isMp4 } from "../lib/uploads";
 import { isEmailLike, isIsoDate, isSlug, isUuid } from "../lib/validate";
 
 const idem = "3f2b8c1e-5d4a-4b6f-9e21-0a1b2c3d4e5f";
@@ -81,7 +83,7 @@ test("format checks accept what the dashboard stores and nothing looser", () => 
 });
 
 test("intent labels name each request type; untrusted strings are checked before use", () => {
-  assert.equal(intentLabel("quote"), "طلب عرض سعر");
+  assert.equal(intentNoun("quote"), "طلب عرض سعر");
   assert.ok(isContactIntent("partner") && !isContactIntent("something-else"));
   assert.ok(isRequestStatus("quote_sent") && !isRequestStatus("deleted"));
   assert.ok(isRole("editor") && !isRole("admin"));
@@ -121,10 +123,10 @@ test("form helpers trim, cut to length and split lines", () => {
   f.set("long", "x".repeat(50));
   f.set("items", " أول \n\n ثاني \n");
   f.set("intent", "publish");
-  assert.equal(field(f, "title"), "عنوان");
-  assert.equal(field(f, "long", 10).length, 10);
-  assert.equal(field(f, "missing"), "");
-  assert.deepEqual(fieldLines(f, "items", 100), ["أول", "ثاني"]);
+  assert.equal(formField(f, "title"), "عنوان");
+  assert.equal(formField(f, "long", 10).length, 10);
+  assert.equal(formField(f, "missing"), "");
+  assert.deepEqual(formFieldLines(f, "items", 100), ["أول", "ثاني"]);
   assert.equal(publishState(f), "published");
   f.set("intent", "draft");
   assert.equal(publishState(f), "draft");
@@ -161,4 +163,34 @@ test("structured data adds the schema.org context and escapes markup from conten
     crumbs.itemListElement.map((c) => [c.position, c.name]),
     [[1, "الرئيسية"], [2, "أعمالنا"]],
   );
+});
+
+test("empty variables copied from .env.example fall back to the defaults", () => {
+  const read = (env: Record<string, string>) =>
+    JSON.parse(
+      execFileSync(process.execPath, ["--import", "tsx", "-e", 'import("./lib/env.ts").then(({ env }) => console.log(JSON.stringify({ port: env.smtp.port, notify: env.notifyEmail, upload: env.uploadDir, site: env.siteUrl, host: env.smtp.host ?? null })))'], {
+        env: { ...process.env, ...env },
+        encoding: "utf8",
+      }),
+    );
+  assert.deepEqual(read({ SMTP_PORT: "", NOTIFY_EMAIL: "", UPLOAD_DIR: "", SITE_URL: "", SMTP_HOST: "  " }), {
+    port: 587, notify: "Info@imainstream.net", upload: "./uploads", site: "http://localhost:3000", host: null,
+  });
+  assert.deepEqual(read({ SMTP_PORT: "465", NOTIFY_EMAIL: "team@x.sa", UPLOAD_DIR: "/data/uploads", SITE_URL: "https://x.sa/", SMTP_HOST: "smtp.x.sa" }), {
+    port: 465, notify: "team@x.sa", upload: "/data/uploads", site: "https://x.sa", host: "smtp.x.sa",
+  });
+  assert.equal(read({ SMTP_PORT: "abc" }).port, 587, "a nonsense port falls back too");
+});
+
+test("ids must be canonical UUIDs", () => {
+  assert.ok(isUuid("3F2B8C1E-5D4A-4B6F-9E21-0A1B2C3D4E5F"));
+  assert.ok(!isUuid("------------------------------------"), "36 dashes passed the old check");
+  assert.ok(!isUuid("3f2b8c1e5d4a4b6f9e210a1b2c3d4e5f0000"));
+});
+
+test("only MP4-family video files are accepted as video", () => {
+  const box = (brand: string) => Buffer.concat([Buffer.from([0, 0, 0, 24]), Buffer.from("ftyp" + brand, "latin1"), Buffer.alloc(12)]);
+  for (const brand of ["isom", "mp42", "M4V ", "avc1"]) assert.ok(isMp4(box(brand)), brand);
+  for (const brand of ["qt  ", "heic", "3gp4", "abcd"]) assert.ok(!isMp4(box(brand)), brand);
+  assert.ok(!isMp4(Buffer.from("not a video at all")));
 });

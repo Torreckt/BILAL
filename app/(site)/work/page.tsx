@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Contact } from "@/components/Contact";
 import { WorkCard } from "@/components/Works";
-import { getLinks, getServices, getWorks, wantsPreview } from "@/lib/content";
+import { getServices, getWorks } from "@/lib/content";
+import { getLinks } from "@/lib/settings";
+import { wantsPreview } from "@/lib/preview";
 
 export const metadata: Metadata = {
   title: "أعمالنا",

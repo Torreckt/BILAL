@@ -5,20 +5,20 @@ import { REQUEST_ROLES, OWNER_ROLES } from "@/lib/roles";
 import { serviceTitles } from "@/lib/admin/content";
 import { getRequest, requestNotes } from "@/lib/admin/requests";
 import { listRequestStaff } from "@/lib/admin/users";
-import { auditFor } from "@/lib/audit";
+import { auditFor, isAuditAction, type AuditAction, type AuditMeta } from "@/lib/audit";
 import { isUuid } from "@/lib/validate";
 import { formatDay } from "@/lib/dates";
-import { intentLabel, statusLabels, statusesFor } from "@/lib/intents";
+import { intentNoun, statusLabels, statusesFor } from "@/lib/intents";
 import { deleteRequest, retryNotify, updateRequest } from "../../../actions/requests";
-import { Badge, Flash, statusTone, when, type Search } from "../../../ui";
+import { Badge, Flash, statusTone, formatDateTime, type Search } from "../../../ui";
 
 export const metadata: Metadata = { title: "تفاصيل الطلب" };
 
-const actionText: Record<string, (m: Record<string, string>) => string> = {
+const actionText: Partial<Record<AuditAction, (m: AuditMeta) => string>> = {
   "request.status": (m) => `غيّر الحالة من «${m.from}» إلى «${m.to}»`,
   "request.assigned": (m) => `أسند الطلب إلى: ${m.to}`,
   "request.note": () => "أضاف ملاحظة",
-  "request.notify_retried": (m) => (String(m.sent) === "true" ? "أعاد إرسال التنبيه (وصل)" : "أعاد إرسال التنبيه (فشل)"),
+  "request.notify_retried": (m) => (m.sent === true ? "أعاد إرسال التنبيه (وصل)" : "أعاد إرسال التنبيه (فشل)"),
 };
 
 export default async function RequestPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Search }) {
@@ -40,7 +40,7 @@ export default async function RequestPage({ params, searchParams }: { params: Pr
     ["الفترة المفضلة", r.meeting_time],
     ["الموضوع", r.subject],
     ["أُرسل من", r.source && <span dir="ltr">{r.source}</span>],
-    ["تاريخ الطلب", when(r.created_at)],
+    ["تاريخ الطلب", formatDateTime(r.created_at)],
   ];
   const wa = r.phone?.replace(/^\+/, "").replace(/^0(5\d{8})$/, "966$1");
 
@@ -50,7 +50,7 @@ export default async function RequestPage({ params, searchParams }: { params: Pr
         <a href="/admin/requests">الطلبات</a> / <span dir="ltr">{r.ref}</span>
       </p>
       <h1 className="adm-title">
-        {intentLabel(r.type)} <Badge tone={statusTone(r.status)}>{statusLabels[r.status]}</Badge>
+        {intentNoun(r.type)} <Badge tone={statusTone(r.status)}>{statusLabels[r.status]}</Badge>
       </h1>
       <Flash sp={await searchParams} />
 
@@ -126,7 +126,7 @@ export default async function RequestPage({ params, searchParams }: { params: Pr
                 {notes.map((n) => (
                   <li key={n.id}>
                     <p>{n.body}</p>
-                    <span className="adm-muted">{n.author ?? "مستخدم محذوف"} · {when(n.created_at)}</span>
+                    <span className="adm-muted">{n.author ?? "مستخدم محذوف"} · {formatDateTime(n.created_at)}</span>
                   </li>
                 ))}
               </ul>
@@ -140,13 +140,13 @@ export default async function RequestPage({ params, searchParams }: { params: Pr
             <ul className="adm-notes">
               {history.map((h) => (
                 <li key={h.id}>
-                  <p>{h.actor_name ?? "النظام"}: {actionText[h.action]?.(h.meta) ?? h.action}</p>
-                  <span className="adm-muted">{when(h.created_at)}</span>
+                  <p>{h.actor_name ?? "النظام"}: {(isAuditAction(h.action) && actionText[h.action]?.(h.meta)) || h.action}</p>
+                  <span className="adm-muted">{formatDateTime(h.created_at)}</span>
                 </li>
               ))}
               <li>
                 <p>وصل الطلب من الموقع</p>
-                <span className="adm-muted">{when(r.created_at)}</span>
+                <span className="adm-muted">{formatDateTime(r.created_at)}</span>
               </li>
             </ul>
           </section>

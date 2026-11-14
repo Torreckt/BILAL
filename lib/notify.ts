@@ -1,10 +1,10 @@
 import nodemailer from "nodemailer";
 import { sql } from "./db";
 import { env } from "./env";
-import { getSetting } from "./content";
+import { getSetting } from "./settings";
 import { formatDay } from "./dates";
-import { intentLabel } from "./intents";
-import type { RequestRow } from "./requests";
+import { intentNoun } from "./intents";
+import type { RequestRow } from "./intake";
 
 /** Emails the team about a saved request and records the outcome on the row. Never throws. */
 export async function notifyRequest(id: string) {
@@ -25,7 +25,7 @@ async function sendAndRecord(id: string) {
     if (!host || !from) throw new Error("إعدادات البريد (SMTP) غير مضبوطة على السيرفر");
     const to = await getSetting("notify_email", env.notifyEmail);
     const rows: [string, string | null][] = [
-      ["النوع", intentLabel(r.type)],
+      ["النوع", intentNoun(r.type)],
       ["الاسم", r.name],
       ["الجوال", r.phone],
       ["الإيميل", r.email],
@@ -47,7 +47,7 @@ async function sendAndRecord(id: string) {
     ].join("\n");
     await nodemailer
       .createTransport({ host, port, secure: port === 465, auth: user ? { user, pass } : undefined, connectionTimeout: 10000, socketTimeout: 15000 })
-      .sendMail({ from, to, subject: `طلب جديد ${r.ref} — ${intentLabel(r.type)}`, text });
+      .sendMail({ from, to, subject: `طلب جديد ${r.ref} — ${intentNoun(r.type)}`, text });
   } catch (e) {
     error = e instanceof Error ? e.message.slice(0, 300) : "خطأ غير معروف";
     // Log the failure without any customer details.

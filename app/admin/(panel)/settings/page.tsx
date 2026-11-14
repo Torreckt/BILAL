@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/auth";
 import { CONTENT_ROLES, OWNER_ROLES } from "@/lib/roles";
-import { getLinks, getSetting } from "@/lib/content";
+import { getLinks, getSetting } from "@/lib/settings";
 import { env } from "@/lib/env";
 import { saveLinks, saveSystem } from "../../actions/settings";
 import { Flash, type Search } from "../../ui";

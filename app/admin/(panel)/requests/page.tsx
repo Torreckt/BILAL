@@ -4,8 +4,8 @@ import { REQUEST_ROLES } from "@/lib/roles";
 import { serviceTitles } from "@/lib/admin/content";
 import { listRequests, parseRequestFilters } from "@/lib/admin/requests";
 import { listRequestStaff } from "@/lib/admin/users";
-import { contactIntents, intentLabel, statusLabels } from "@/lib/intents";
-import { Badge, Flash, statusTone, when, type Search } from "../../ui";
+import { contactIntents, intentNoun, statusLabels } from "@/lib/intents";
+import { Badge, Flash, statusTone, formatDateTime, type Search } from "../../ui";
 
 export const metadata: Metadata = { title: "الطلبات" };
 const PAGE = 25;
@@ -16,7 +16,7 @@ export default async function Requests({ searchParams }: { searchParams: Search 
   const page = Math.max(1, Number(sp.page) || 1);
   const filters = parseRequestFilters(sp);
   const [{ rows, total }, services, staff] = await Promise.all([
-    listRequests(filters, page, PAGE),
+    listRequests(filters, { page, pageSize: PAGE }),
     serviceTitles(),
     listRequestStaff(),
   ]);
@@ -102,7 +102,7 @@ export default async function Requests({ searchParams }: { searchParams: Search 
                     {r.business && <span className="adm-muted"> · {r.business}</span>}
                   </td>
                   <td data-label="النوع">
-                    {intentLabel(r.type)}
+                    {intentNoun(r.type)}
                     {r.services.length > 0 && <span className="adm-muted"> · {r.services.map(title).join("، ")}</span>}
                   </td>
                   <td data-label="الحالة">
@@ -110,7 +110,7 @@ export default async function Requests({ searchParams }: { searchParams: Search 
                     {r.notify_status === "failed" && <Badge tone="red">التنبيه فشل</Badge>}
                   </td>
                   <td data-label="المسؤول">{r.assignee ?? <span className="adm-muted">بدون</span>}</td>
-                  <td data-label="التاريخ"><time>{when(r.created_at)}</time></td>
+                  <td data-label="التاريخ"><time>{formatDateTime(r.created_at)}</time></td>
                 </tr>
               ))}
             </tbody>

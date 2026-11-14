@@ -6,7 +6,9 @@ import { Contact } from "@/components/Contact";
 import { Process } from "@/components/Process";
 import { JsonLd } from "@/components/JsonLd";
 import { WorkCard } from "@/components/Works";
-import { getFaqs, getLinks, getServices, getWorks, wantsPreview, type Faq as FaqRow, type Service, type Work } from "@/lib/content";
+import { getFaqs, getServices, getWorks, type Faq as FaqRow, type Service, type Work } from "@/lib/content";
+import { getLinks } from "@/lib/settings";
+import { wantsPreview } from "@/lib/preview";
 import { reasons, sectors, teamRoles } from "@/lib/site";
 
 function Stream() {

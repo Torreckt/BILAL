@@ -4,7 +4,9 @@ import { Contact } from "@/components/Contact";
 import { JsonLd, breadcrumbs, orgRef } from "@/components/JsonLd";
 import { Prose } from "@/components/Prose";
 import { RelatedWorks, WorkMedia } from "@/components/Works";
-import { getLinks, getService, getServices, getWork, getWorks, wantsPreview } from "@/lib/content";
+import { getService, getServices, getWork, getWorks } from "@/lib/content";
+import { getLinks } from "@/lib/settings";
+import { wantsPreview } from "@/lib/preview";
 import { env } from "@/lib/env";
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | undefined>> };

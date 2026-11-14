@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Icon, social } from "./icons";
 import { formatDay, riyadhToday } from "@/lib/dates";
-import { contactIntents, intentLabel, meetingTimes, meetingTypes, type ContactIntent } from "@/lib/intents";
+import { contactIntents, intentNoun, meetingTimes, meetingTypes, type ContactIntent } from "@/lib/intents";
 import { sectors, whatsappLink } from "@/lib/site";
 
 type Props = {
@@ -131,7 +131,7 @@ export function ContactForm({ services, whatsapp, initialIntent = "meeting", ini
   if (sent) {
     const titles = sent.services.map((s) => services.find((x) => x.slug === s)?.title ?? s);
     const msg = [
-      `${contactIntents.find((c) => c.id === sent.type)!.emoji} *${intentLabel(sent.type)}*`,
+      `${contactIntents.find((c) => c.id === sent.type)!.emoji} *${intentNoun(sent.type)}*`,
       `الرقم المرجعي: *${sent.ref}*`,
       "",
       `هلا ماين ستريم 👋 أنا ${sent.name}، أرسلت طلب من الموقع وأبغى أتابعه.`,
@@ -183,7 +183,7 @@ export function ContactForm({ services, whatsapp, initialIntent = "meeting", ini
   const aria = (name: string) => ({ "aria-invalid": !!errors[name] || undefined, "aria-describedby": errors[name] ? `err-${name}` : undefined });
   const label = (text: string) => <span className="form__label">{text}</span>;
   // One-tap choices instead of dropdowns: a row of radio chips.
-  const choices = (name: string, options: string[], required = false) => (
+  const choices = (name: string, options: readonly string[], required = false) => (
     <div className="chips">
       {options.map((o) => (
         <label key={o} className="chip">

@@ -44,7 +44,7 @@ export async function endSessions(userId: string, { keepCurrent = false } = {}) 
   await sql`delete from sessions where user_id = ${userId} and ${keep ? sql`token_hash <> ${keep}` : sql`true`}`;
 }
 
-/** The signed-in account, or null. */
+/** The signed-in account, or null. Also slides the idle timeout: a session seen over a minute ago gets last_seen_at refreshed. */
 export const getSession = cache(async (): Promise<SessionUser | null> => {
   const hash = await sessionTokenHash();
   if (!hash) return null;

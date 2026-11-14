@@ -2,7 +2,7 @@ import { after } from "next/server";
 import { clientKey, consumeRateLimit } from "@/lib/rate-limit";
 import { recordEvent } from "@/lib/events";
 import { notifyRequest } from "@/lib/notify";
-import { checkReferences, parseRequest, saveRequest } from "@/lib/requests";
+import { checkReferences, parseRequest, saveRequest } from "@/lib/intake";
 
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
 
@@ -36,8 +36,8 @@ export async function POST(req: Request) {
   if (!parsed.ok) return json({ errors: parsed.errors }, 422);
   const data = parsed.data;
 
-  const referenceErrors = await checkReferences(data);
-  if (referenceErrors) return json({ errors: referenceErrors }, 422);
+  const references = await checkReferences(data);
+  if (!references.ok) return json({ errors: references.errors }, 422);
 
   const saved = await saveRequest(data, ip);
   if (saved.created) {

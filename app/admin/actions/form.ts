@@ -1,16 +1,17 @@
 // Helpers shared by the dashboard's server actions. Plain module (not "use server"), so nothing here is callable from the browser.
 import { redirect } from "next/navigation";
+import type { PublishStatus } from "@/lib/content";
 import { fingerprint } from "@/lib/crypto";
 
 /** A trimmed text field, cut to `max` characters. */
-export const field = (f: FormData, key: string, max = 300) => String(f.get(key) ?? "").trim().slice(0, max);
+export const formField = (f: FormData, key: string, max = 300) => String(f.get(key) ?? "").trim().slice(0, max);
 
 /** Non-empty lines of a textarea. */
-export const fieldLines = (f: FormData, key: string, max: number) =>
-  field(f, key, max).split("\n").map((l) => l.trim()).filter(Boolean);
+export const formFieldLines = (f: FormData, key: string, max: number) =>
+  formField(f, key, max).split("\n").map((l) => l.trim()).filter(Boolean);
 
 /** "publish" button → published; any other submit → draft. */
-export const publishState = (f: FormData) => (field(f, "intent") === "publish" ? "published" : "draft");
+export const publishState = (f: FormData): PublishStatus => (formField(f, "intent") === "publish" ? "published" : "draft");
 
 /**
  * Redirects, optionally carrying an `ok` or `error` message for the next page's <Flash>.

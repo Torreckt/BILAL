@@ -1,7 +1,7 @@
 // Dashboard queries for customer requests. Public submission lives in lib/requests.ts.
 import { sql } from "../db";
-import { isContactIntent, isRequestStatus, type ContactIntent, type RequestStatus } from "../intents";
-import type { RequestRow } from "../requests";
+import { isContactIntent, isRequestStatus, type ContactIntent, type NotifyStatus, type RequestStatus } from "../intents";
+import type { RequestRow } from "../intake";
 import { isIsoDate, isUuid } from "../validate";
 
 // Follow-up rule: new for over a day, or open with no change for three days. Expects the requests table aliased as r.
@@ -57,10 +57,10 @@ export function parseRequestFilters(sp: Record<string, string | undefined>): Req
 
 export type RequestListRow = {
   id: string; ref: string; type: ContactIntent; status: RequestStatus; name: string; business: string | null;
-  services: string[]; created_at: Date; assignee: string | null; notify_status: string;
+  services: string[]; created_at: Date; assignee: string | null; notify_status: NotifyStatus;
 };
 
-export async function listRequests(f: RequestFilters, page: number, pageSize: number) {
+export async function listRequests(f: RequestFilters, { page, pageSize }: { page: number; pageSize: number }) {
   const like = f.q ? `%${f.q.slice(0, 80).replace(/[%_\\]/g, "\\$&")}%` : null;
   const where = sql`
     ${like ? sql`(r.name ilike ${like} or r.ref ilike ${like} or r.phone ilike ${like} or r.email ilike ${like} or r.business ilike ${like})` : sql`true`}
@@ -120,7 +120,7 @@ export async function deleteRequest(id: string) {
   return row?.ref;
 }
 
-export async function requestNotifyStatus(id: string) {
-  const [row] = await sql<{ notify_status: string }[]>`select notify_status from requests where id = ${id}`;
+export async function requestNotifyStatus(id: string): Promise<NotifyStatus | undefined> {
+  const [row] = await sql<{ notify_status: NotifyStatus }[]>`select notify_status from requests where id = ${id}`;
   return row?.notify_status;
 }

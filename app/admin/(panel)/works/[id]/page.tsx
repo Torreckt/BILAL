@@ -98,7 +98,7 @@ export default async function EditWork({ params, searchParams }: { params: Promi
             </ul>
           )}
           <label className="adm-field">
-            <span>ارفع ملفات جديدة <em>(صور حتى 12 ميقا، فيديو MP4 حتى 30 ميقا)</em></span>
+            <span>ارفع ملفات جديدة <em>(صور حتى 12 ميقا، فيديو MP4 حتى 30 ميقا، ومجموع الرفعة الوحدة حتى 40 ميقا)</em></span>
             <input type="file" name="files" multiple accept="image/jpeg,image/png,image/webp,image/avif,video/mp4" />
           </label>
           <label className="adm-field">

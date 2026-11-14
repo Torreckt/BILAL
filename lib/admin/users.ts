@@ -32,7 +32,7 @@ export async function clearFailedLogins(userId: string) {
   await sql`update users set failed_logins = 0, locked_until = null where id = ${userId}`;
 }
 
-export async function passwordHash(userId: string): Promise<string | undefined> {
+export async function getPasswordHash(userId: string): Promise<string | undefined> {
   const [row] = await sql<{ password_hash: string }[]>`select password_hash from users where id = ${userId}`;
   return row?.password_hash;
 }
@@ -57,9 +57,9 @@ export async function requestStaffName(userId: string) {
 }
 
 /** Creates an account; returns its id, or undefined when the username is already taken. */
-export async function insertUser(username: string, name: string, role: Role, hash: string) {
+export async function insertUser({ username, name, role, passwordHash }: { username: string; name: string; role: Role; passwordHash: string }) {
   const [row] = await sql<{ id: string }[]>`
-    insert into users (username, name, role, password_hash) values (${username}, ${name}, ${role}, ${hash})
+    insert into users (username, name, role, password_hash) values (${username}, ${name}, ${role}, ${passwordHash})
     on conflict (username) do nothing returning id`;
   return row?.id;
 }

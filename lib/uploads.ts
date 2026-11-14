@@ -22,18 +22,25 @@ async function deleteFile(name: string) {
   }
 }
 
+// ISO-BMFF major brands that browsers play as video/mp4 (phones export isom/mp42; iPhone "most compatible" too).
+const MP4_BRANDS = new Set(["isom", "iso2", "iso4", "iso5", "iso6", "mp41", "mp42", "avc1", "M4V ", "M4VH", "M4VP", "dash", "MSNV"]);
+
+/** True when the bytes start an MP4 file with a brand from MP4_BRANDS (not QuickTime .mov, 3GP or HEIF stills). */
+export const isMp4 = (buf: Buffer) => buf.subarray(4, 8).toString("latin1") === "ftyp" && MP4_BRANDS.has(buf.subarray(8, 12).toString("latin1"));
+
 /**
  * Stores a file uploaded from the dashboard. The type is decided by the file's real content, never its name:
- * images are decoded and re-encoded to WebP (which also drops EXIF/location data); videos must be MP4.
+ * images are decoded and re-encoded to WebP (which also drops EXIF/location data); videos must be MP4 (see isMp4).
  */
-export async function saveUpload(file: File, userId: string, portraitVideo: boolean): Promise<MediaItem> {
+export async function saveUpload(file: File, { userId, videoShape }: { userId: string; videoShape: "portrait" | "wide" }): Promise<MediaItem> {
+  const portraitVideo = videoShape === "portrait";
   const buf = Buffer.from(await file.arrayBuffer());
   const id = randomBytes(16).toString("hex");
   await mkdir(resolve(env.uploadDir), { recursive: true });
   let item: MediaItem;
   let name: string;
   let bytes: number;
-  if (buf.subarray(4, 8).toString("latin1") === "ftyp") {
+  if (isMp4(buf)) {
     if (buf.length > MAX_VIDEO_BYTES) throw new Error("حجم الفيديو أكبر من 30 ميقا");
     name = `${id}.mp4`;
     bytes = buf.length;
@@ -65,6 +72,13 @@ export async function saveUpload(file: File, userId: string, portraitVideo: bool
     throw e;
   }
   return item;
+}
+
+/** Removes uploaded files after the rows that used them are gone. Best effort: failures are logged, not thrown. */
+export async function removeUploads(srcs: string[]) {
+  for (const src of srcs) {
+    await removeUpload(src).catch((e) => console.error(JSON.stringify({ level: "error", event: "upload_remove_failed", src, error: String(e) })));
+  }
 }
 
 export async function removeUpload(src: string) {

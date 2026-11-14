@@ -1,8 +1,9 @@
+// Public intake: validates a request sent from the site's contact form and saves it. Dashboard queries live in lib/admin/requests.ts.
 import { randomInt } from "node:crypto";
 import { z } from "zod";
 import { sql } from "./db";
 import { riyadhToday } from "./dates";
-import { meetingTimes, meetingTypes, type ContactIntent, type RequestStatus } from "./intents";
+import { meetingTimes, meetingTypes, type ContactIntent, type NotifyStatus, type RequestStatus } from "./intents";
 
 const clean = (max: number) =>
   z.preprocess((v) => (typeof v === "string" ? v.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "").trim() : v), z.string().max(max, "النص أطول من المسموح"));
@@ -28,12 +29,12 @@ const schema = z
     z.object({
       ...base,
       type: z.literal("meeting"),
-      meetingType: z.enum(meetingTypes as [string, ...string[]], "اختر نوع الاجتماع"),
+      meetingType: z.enum(meetingTypes, "اختر نوع الاجتماع"),
       day: optional(10).refine(
         (v) => !v || (/^\d{4}-\d{2}-\d{2}$/.test(v) && v >= riyadhToday() && v <= riyadhToday(120)),
         "اختر يوم من اليوم وطالع",
       ),
-      time: optional(20).refine((v) => !v || meetingTimes.includes(v), "اختر فترة من القائمة"),
+      time: optional(20).refine((v) => !v || (meetingTimes as readonly string[]).includes(v), "اختر فترة من القائمة"),
       message: optional(2000),
     }),
     z.object({
@@ -60,11 +61,11 @@ const schema = z
 
 export type RequestInput = z.infer<typeof schema>;
 
-/** Checks what the schema can't on its own: a quote may only name published services. Returns field errors, or null. */
-export async function checkReferences(data: RequestInput): Promise<FieldErrors | null> {
-  if (data.type !== "quote") return null;
+/** Checks what the schema can't on its own: a quote may only name published services. Same result shape as parseRequest. */
+export async function checkReferences(data: RequestInput): Promise<{ ok: true } | { ok: false; errors: FieldErrors }> {
+  if (data.type !== "quote") return { ok: true };
   const [{ n }] = await sql<{ n: number }[]>`select count(*)::int as n from services where status = 'published' and slug in ${sql(data.services)}`;
-  return n === new Set(data.services).size ? null : { services: "اختر الخدمات من القائمة" };
+  return n === new Set(data.services).size ? { ok: true } : { ok: false, errors: { services: "اختر الخدمات من القائمة" } };
 }
 export type FieldErrors = Record<string, string>;
 
@@ -101,7 +102,7 @@ export type RequestRow = {
   message: string | null;
   source: string | null;
   assignee_id: string | null;
-  notify_status: "pending" | "sent" | "failed";
+  notify_status: NotifyStatus;
   notify_error: string | null;
   notify_attempts: number;
   created_at: Date;

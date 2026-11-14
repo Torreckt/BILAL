@@ -11,14 +11,19 @@ export const contactIntents: { id: ContactIntent; label: string; noun: string; e
   { id: "inquiry", label: "استفسار", noun: "استفسار", emoji: "💬" },
   { id: "partner", label: "تعاون", noun: "طلب تعاون وشراكة", emoji: "🤝" },
 ];
-export const intentLabel = (t: ContactIntent) => contactIntents.find((c) => c.id === t)?.noun ?? t;
+/** The request's name in the dashboard, emails and WhatsApp (the `noun`, not the tab `label`). */
+export const intentNoun = (t: ContactIntent) => contactIntents.find((c) => c.id === t)?.noun ?? t;
 
-export const meetingTypes = ["اجتماع أونلاين", "مكالمة هاتفية"];
-export const meetingTimes = ["الصباح", "الظهر", "العصر", "المساء"];
+export const meetingTypes = ["اجتماع أونلاين", "مكالمة هاتفية"] as const;
+export const meetingTimes = ["الصباح", "الظهر", "العصر", "المساء"] as const;
 
 export const REQUEST_STATUSES = ["new", "in_progress", "meeting_confirmed", "quote_sent", "answered", "closed"] as const;
 export type RequestStatus = (typeof REQUEST_STATUSES)[number];
 export const isRequestStatus = (v: string): v is RequestStatus => (REQUEST_STATUSES as readonly string[]).includes(v);
+
+/** Outcome of the team notification email for a request. */
+export const NOTIFY_STATUSES = ["pending", "sent", "failed"] as const;
+export type NotifyStatus = (typeof NOTIFY_STATUSES)[number];
 
 export const statusLabels: Record<RequestStatus, string> = {
   new: "جديد",

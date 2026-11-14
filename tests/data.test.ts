@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { after, before, describe, test } from "node:test";
+import type { ServiceFields, WorkRecord } from "../lib/admin/content";
 
 const DB = process.env.TEST_DATABASE_URL;
 
@@ -17,11 +18,18 @@ describe("data layer", { skip: !DB && "set TEST_DATABASE_URL to run" }, () => {
   let events: typeof import("../lib/events");
   let audit: typeof import("../lib/audit");
   let rateLimit: typeof import("../lib/rate-limit");
-  let requestsPublic: typeof import("../lib/requests");
+  let requestsPublic: typeof import("../lib/intake");
   let notify: typeof import("../lib/notify");
-  let siteContent: typeof import("../lib/content");
+  let settings: typeof import("../lib/settings");
   let owner: string;
   let agent: string;
+
+  const serviceRow = (fields: Partial<ServiceFields> & Pick<ServiceFields, "slug" | "title">): ServiceFields => ({
+    code: "X", line: "سطر", items: [], summary: "", body: "", seo_title: null, seo_description: null, position: 0, status: "draft", ...fields,
+  });
+  const workRecord = (fields: Partial<WorkRecord> & Pick<WorkRecord, "slug" | "title" | "media">): WorkRecord => ({
+    category: "", client: null, summary: "", body: "", service_slug: null, position: 0, status: "draft", cover: null, ...fields,
+  });
 
   const addRequest = async (fields: Record<string, unknown> = {}) => {
     const [row] = await sql<{ id: string }[]>`
@@ -42,12 +50,12 @@ describe("data layer", { skip: !DB && "set TEST_DATABASE_URL to run" }, () => {
     events = await import("../lib/events");
     audit = await import("../lib/audit");
     rateLimit = await import("../lib/rate-limit");
-    requestsPublic = await import("../lib/requests");
+    requestsPublic = await import("../lib/intake");
     notify = await import("../lib/notify");
-    siteContent = await import("../lib/content");
-    owner = (await users.insertUser("owner", "المالك", "owner", "x"))!;
-    agent = (await users.insertUser("agent", "المتابع", "agent", "x"))!;
-    await users.insertUser("editor", "المحرر", "editor", "x");
+    settings = await import("../lib/settings");
+    owner = (await users.insertUser({ username: "owner", name: "المالك", role: "owner", passwordHash: "x" }))!;
+    agent = (await users.insertUser({ username: "agent", name: "المتابع", role: "agent", passwordHash: "x" }))!;
+    await users.insertUser({ username: "editor", name: "المحرر", role: "editor", passwordHash: "x" });
   });
 
   after(async () => {
@@ -65,7 +73,7 @@ describe("data layer", { skip: !DB && "set TEST_DATABASE_URL to run" }, () => {
 
     const stats = await requests.requestStats(agent);
     assert.deepEqual(stats, { fresh: 2, follow: 2, open: 5, failed: 1, mine: 1 });
-    const listed = await requests.listRequests({ follow: "1" }, 1, 25);
+    const listed = await requests.listRequests({ follow: "1" }, { page: 1, pageSize: 25 });
     assert.equal(listed.total, 2, "the list and the dashboard count the same requests");
     assert.equal(await requests.countNewRequests(), 2);
   });
@@ -76,7 +84,7 @@ describe("data layer", { skip: !DB && "set TEST_DATABASE_URL to run" }, () => {
     await addRequest({ name: "خالد", type: "meeting", email: "k@test.local", phone: null });
     await addRequest({ name: "نورة", type: "quote", services: ["photo"], status: "closed", assignee_id: agent });
 
-    const total = async (f: Parameters<typeof requests.listRequests>[0]) => (await requests.listRequests(f, 1, 25)).total;
+    const total = async (f: Parameters<typeof requests.listRequests>[0]) => (await requests.listRequests(f, { page: 1, pageSize: 25 })).total;
     assert.equal(await total({}), 3);
     assert.equal(await total({ type: "quote" }), 2);
     assert.equal(await total({ type: "quote", open: "1" }), 1);
@@ -88,7 +96,7 @@ describe("data layer", { skip: !DB && "set TEST_DATABASE_URL to run" }, () => {
     assert.equal(await total({ assignee: "none" }), 2);
     assert.equal(await total({ assignee: "'; drop table requests; --", from: "yesterday" }), 3);
 
-    const page = await requests.listRequests({}, 2, 2);
+    const page = await requests.listRequests({}, { page: 2, pageSize: 2 });
     assert.equal(page.rows.length, 1, "second page holds the remainder");
     assert.equal(page.total, 3);
   });
@@ -141,7 +149,7 @@ describe("data layer", { skip: !DB && "set TEST_DATABASE_URL to run" }, () => {
   });
 
   test("account management: duplicates, roles and deactivation", async () => {
-    assert.equal(await users.insertUser("owner", "نسخة", "agent", "x"), undefined, "a username registers once");
+    assert.equal(await users.insertUser({ username: "owner", name: "نسخة", role: "agent", passwordHash: "x" }), undefined, "a username registers once");
     await users.setRole(agent, "editor");
     assert.equal((await users.getUser(agent))!.role, "editor");
     assert.ok(!(await users.listRequestStaff()).some((s) => s.id === agent), "no longer offered for requests");
@@ -153,20 +161,20 @@ describe("data layer", { skip: !DB && "set TEST_DATABASE_URL to run" }, () => {
   });
 
   test("content rows save, keep slugs unique, and store media as JSON", async () => {
-    const service = { slug: "seo", code: "SEO", title: "سيو", line: "ظهور أعلى" };
+    const service = serviceRow({ slug: "seo", code: "SEO", title: "سيو", line: "ظهور أعلى" });
     const id = await content.saveContentRow("services", "", service);
     assert.ok(id);
     assert.equal(await content.slugTaken("services", "seo", ""), true);
     assert.equal(await content.slugTaken("services", "seo", id!), false, "a row doesn't clash with itself");
     await assert.rejects(content.saveContentRow("services", "", { ...service, title: "نسخة" }), content.SlugTakenError);
-    assert.equal(await content.saveContentRow("services", randomUUID(), { title: "x" }), undefined, "updating a missing row");
+    assert.equal(await content.saveContentRow("services", randomUUID(), serviceRow({ slug: "x", title: "x" })), undefined, "updating a missing row");
 
     const media = [{ type: "image", src: "/media/a.webp", w: 10, h: 10 }];
-    const workId = await content.saveContentRow("works", "", { slug: "w1", title: "عمل", media: content.asJsonb(media) });
+    const workId = await content.saveContentRow("works", "", workRecord({ slug: "w1", title: "عمل", media: content.asJsonb(media) }));
     assert.deepEqual(await content.workMedia(workId!), media);
     assert.equal((await content.getWorkById(workId!))!.title, "عمل");
 
-    await content.saveContentRow("services", id!, { status: "published" });
+    await content.saveContentRow("services", id!, { ...service, status: "published" });
     assert.deepEqual(await content.contentCounts(), { services: 1, works: 0, faqs: 0, drafts: 1 });
     const titles = await content.serviceTitles();
     assert.equal(titles.title("seo"), "سيو");
@@ -192,8 +200,8 @@ describe("data layer", { skip: !DB && "set TEST_DATABASE_URL to run" }, () => {
 
   test("a quote may only name published services", async () => {
     await sql`delete from services`;
-    await content.saveContentRow("services", undefined, { slug: "ads", code: "ADS", title: "إعلانات", line: "x", status: "published" });
-    await content.saveContentRow("services", undefined, { slug: "draft-one", code: "D", title: "مسودة", line: "x" });
+    await content.saveContentRow("services", undefined, serviceRow({ slug: "ads", title: "إعلانات", status: "published" }));
+    await content.saveContentRow("services", undefined, serviceRow({ slug: "draft-one", title: "مسودة" }));
     const quote = (services: string[]) => {
       const parsed = requestsPublic.parseRequest({
         idem: randomUUID(), type: "quote", name: "سارة", phone: "0501234567", business: "مقهى", message: "أبغى عرض سعر للإعلانات", services,
@@ -201,9 +209,9 @@ describe("data layer", { skip: !DB && "set TEST_DATABASE_URL to run" }, () => {
       assert.ok(parsed.ok);
       return requestsPublic.checkReferences(parsed.data);
     };
-    assert.equal(await quote(["ads"]), null);
-    assert.deepEqual(await quote(["ads", "draft-one"]), { services: "اختر الخدمات من القائمة" });
-    assert.deepEqual(await quote(["made-up"]), { services: "اختر الخدمات من القائمة" });
+    assert.deepEqual(await quote(["ads"]), { ok: true });
+    assert.deepEqual(await quote(["ads", "draft-one"]), { ok: false, errors: { services: "اختر الخدمات من القائمة" } });
+    assert.deepEqual(await quote(["made-up"]), { ok: false, errors: { services: "اختر الخدمات من القائمة" } });
   });
 
   test("a failed notification is recorded on the request instead of thrown", async () => {
@@ -217,12 +225,12 @@ describe("data layer", { skip: !DB && "set TEST_DATABASE_URL to run" }, () => {
   test("a stored setting of the wrong kind falls back to the default", async () => {
     await sql`insert into settings (key, value) values ('notify_email', ${sql.json(42 as never)})
               on conflict (key) do update set value = excluded.value`;
-    assert.equal(await siteContent.getSetting("notify_email", "team@test.local"), "team@test.local");
+    assert.equal(await settings.getSetting("notify_email", "team@test.local"), "team@test.local");
   });
 
   test("settings upsert, events count by name, audit entries list newest first", async () => {
-    await content.saveSetting("retention_days", 90);
-    await content.saveSetting("retention_days", 30);
+    await settings.saveSetting("retention_days", 90);
+    await settings.saveSetting("retention_days", 30);
     const [{ value }] = await sql<{ value: number }[]>`select value from settings where key = 'retention_days'`;
     assert.equal(value, 30);
 
@@ -234,8 +242,8 @@ describe("data layer", { skip: !DB && "set TEST_DATABASE_URL to run" }, () => {
     assert.equal(count("never"), 0);
 
     const id = await addRequest();
-    await audit.audit({ id: owner, name: "المالك" }, "request.note", "request", id);
-    await audit.audit(null, "request.status", "request", id, { to: "مغلق" });
+    await audit.recordAudit({ id: owner, name: "المالك" }, "request.note", "request", id);
+    await audit.recordAudit(null, "request.status", "request", id, { to: "مغلق" });
     const history = await audit.auditFor("request", id);
     assert.deepEqual(history.map((h) => h.action), ["request.status", "request.note"]);
     assert.equal(history[0].actor_name, null);

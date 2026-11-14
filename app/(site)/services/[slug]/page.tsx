@@ -6,7 +6,9 @@ import { JsonLd, breadcrumbs, orgRef } from "@/components/JsonLd";
 import { Blocks } from "@/components/Prose";
 import { ServiceIcon } from "@/components/ServiceCards";
 import { RelatedWorks } from "@/components/Works";
-import { getLinks, getService, getServices, getWorks, wantsPreview } from "@/lib/content";
+import { getService, getServices, getWorks } from "@/lib/content";
+import { getLinks } from "@/lib/settings";
+import { wantsPreview } from "@/lib/preview";
 import { env } from "@/lib/env";
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | undefined>> };

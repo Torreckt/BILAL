@@ -1,8 +1,8 @@
 import { cache } from "react";
 import { sql } from "./db";
-import { getSession } from "./auth";
-import { CONTENT_ROLES } from "./roles";
-import { defaultLinks, type Links } from "./site";
+
+/** Content rows are drafts until an editor publishes them. */
+export type PublishStatus = "draft" | "published";
 
 export type Service = {
   id: string;
@@ -15,7 +15,7 @@ export type Service = {
   body: string;
   seo_title: string | null;
   seo_description: string | null;
-  status: "draft" | "published";
+  status: PublishStatus;
   position: number;
   updated_at: Date;
 };
@@ -31,13 +31,13 @@ export type Work = {
   service_slug: string | null;
   cover: string | null;
   media: MediaItem[];
-  status: "draft" | "published";
+  status: PublishStatus;
   position: number;
   updated_at: Date;
 };
-export type Faq = { id: string; question: string; answer: string; status: "draft" | "published"; position: number };
+export type Faq = { id: string; question: string; answer: string; status: PublishStatus; position: number };
 
-// The public site only ever sees published rows; drafts need a signed-in editor asking for a preview.
+// The public site only ever sees published rows; drafts are included only when the page asks for them (see lib/preview.ts).
 const visible = (drafts: boolean) => (drafts ? sql`true` : sql`status = 'published'`);
 
 export const getServices = cache(
@@ -57,22 +57,3 @@ export const getWork = cache(async (slug: string, drafts = false): Promise<Work 
 export const getFaqs = cache(
   (drafts = false) => sql<Faq[]>`select * from faqs where ${visible(drafts)} order by position, question`,
 );
-
-/** Values the dashboard stores in the settings table, by key. */
-export type Settings = { links: Partial<Links>; notify_email: string; retention_days: number };
-
-/** A stored setting, or the fallback when it is missing or not the expected kind of value. */
-export const getSetting = cache(async <K extends keyof Settings>(key: K, fallback: Settings[K]): Promise<Settings[K]> => {
-  const [row] = await sql<{ value: unknown }[]>`select value from settings where key = ${key}`;
-  const value = row?.value;
-  const sameKind = typeof value === typeof fallback && (typeof value !== "object" || (value !== null && !Array.isArray(value)));
-  return sameKind ? (value as Settings[K]) : fallback;
-});
-export const getLinks = async (): Promise<Links> => ({ ...defaultLinks, ...(await getSetting("links", {})) });
-
-/** True when the URL asks for a preview and the visitor is a signed-in owner or editor. */
-export async function wantsPreview(searchParams: Promise<Record<string, string | string[] | undefined>>) {
-  if ((await searchParams).preview !== "1") return false;
-  const user = await getSession();
-  return !!user && CONTENT_ROLES.includes(user.role);
-}

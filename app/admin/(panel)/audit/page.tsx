@@ -1,23 +1,11 @@
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/auth";
 import { OWNER_ROLES } from "@/lib/roles";
-import { recentAudit } from "@/lib/audit";
-import { when } from "../../ui";
+import { AUDIT_ACTION_LABELS, isAuditAction, recentAudit } from "@/lib/audit";
+import { formatDateTime } from "../../ui";
 
 export const metadata: Metadata = { title: "سجل التغييرات" };
 
-const labels: Record<string, string> = {
-  "login.success": "دخول ناجح", "login.failed": "محاولة دخول فاشلة", "login.locked": "قفل الحساب بعد محاولات فاشلة",
-  "password.changed": "غيّر كلمة المرور",
-  "request.status": "غيّر حالة طلب", "request.assigned": "أسند طلب", "request.note": "أضاف ملاحظة على طلب", "request.deleted": "حذف طلب", "request.notify_retried": "أعاد إرسال تنبيه طلب",
-  "requests.purged": "حذف تلقائي لطلبات مغلقة قديمة",
-  "service.published": "نشر خدمة", "service.saved_draft": "حفظ خدمة كمسودة", "service.deleted": "حذف خدمة",
-  "work.published": "نشر عمل", "work.saved_draft": "حفظ عمل كمسودة", "work.deleted": "حذف عمل",
-  "faq.published": "نشر سؤال", "faq.saved_draft": "حفظ سؤال كمسودة", "faq.deleted": "حذف سؤال",
-  "settings.links": "عدّل روابط التواصل", "settings.system": "عدّل إعدادات النظام",
-  "user.created": "أنشأ مستخدم", "user.role": "غيّر دور مستخدم", "user.disabled": "أوقف حساب", "user.enabled": "فعّل حساب",
-  "user.password_reset": "غيّر كلمة مرور مستخدم", "user.created_or_reset": "إنشاء أو تصفير حساب من السيرفر",
-};
 
 export default async function Audit() {
   await requireUser(...OWNER_ROLES);
@@ -34,9 +22,9 @@ export default async function Audit() {
           <tbody>
             {rows.map((r) => (
               <tr key={r.id}>
-                <td data-label="الوقت"><time>{when(r.created_at)}</time></td>
+                <td data-label="الوقت"><time>{formatDateTime(r.created_at)}</time></td>
                 <td data-label="المستخدم">{r.actor_name ?? "النظام"}</td>
-                <td data-label="العملية">{labels[r.action] ?? r.action}</td>
+                <td data-label="العملية">{(isAuditAction(r.action) ? AUDIT_ACTION_LABELS[r.action] : r.action)}</td>
                 <td data-label="تفاصيل" className="adm-muted">
                   {Object.values(r.meta).filter((v) => typeof v === "string" || typeof v === "number").join(" · ")}
                 </td>

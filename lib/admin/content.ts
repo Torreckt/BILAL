@@ -1,12 +1,16 @@
-// Dashboard reads and writes for site content and settings. Public, published-only reads live in lib/content.ts.
-import type { MediaItem, Service, Settings, Work } from "../content";
+// Dashboard reads and writes for site content. Public, published-only reads live in lib/content.ts.
+import type { Faq, MediaItem, Service, Work } from "../content";
 import { sql } from "../db";
 
 export const CONTENT_TABLES = { service: "services", work: "works", faq: "faqs" } as const;
 export type ContentKind = keyof typeof CONTENT_TABLES;
 export const isContentKind = (v: string): v is ContentKind => Object.hasOwn(CONTENT_TABLES, v);
-/** Column values the dashboard writes; jsonb columns go through asJsonb. */
-export type ContentRow = Record<string, string | number | boolean | null | string[] | ReturnType<typeof asJsonb>>;
+/** The columns an editor form writes, per table. A work's media list goes through asJsonb. */
+export type ServiceFields = Pick<Service, "slug" | "code" | "title" | "line" | "items" | "summary" | "body" | "seo_title" | "seo_description" | "position" | "status">;
+export type WorkFields = Pick<Work, "slug" | "title" | "category" | "client" | "summary" | "body" | "service_slug" | "position" | "status">;
+export type WorkRecord = WorkFields & { cover: string | null; media: ReturnType<typeof asJsonb> };
+export type FaqFields = Pick<Faq, "question" | "answer" | "position" | "status">;
+type RowFor = { services: ServiceFields; works: WorkRecord; faqs: FaqFields };
 type Table = (typeof CONTENT_TABLES)[ContentKind];
 
 export async function getServiceById(id: string): Promise<Service | undefined> {
@@ -48,11 +52,11 @@ export class SlugTakenError extends Error {}
  * matched nothing).
  * A unique-slug violation (two editors saving the same slug at once) becomes a SlugTakenError.
  */
-export async function saveContentRow(table: Table, id: string | undefined, row: ContentRow): Promise<string | undefined> {
+export async function saveContentRow<T extends Table>(table: T, id: string | undefined, row: RowFor[T]): Promise<string | undefined> {
   try {
     const [saved] = id
-      ? await sql<{ id: string }[]>`update ${sql(table)} set ${sql(row)}, updated_at = now() where id = ${id} returning id`
-      : await sql<{ id: string }[]>`insert into ${sql(table)} ${sql(row)} returning id`;
+      ? await sql<{ id: string }[]>`update ${sql(table)} set ${sql(row as never)}, updated_at = now() where id = ${id} returning id`
+      : await sql<{ id: string }[]>`insert into ${sql(table)} ${sql(row as never)} returning id`;
     return saved?.id;
   } catch (e) {
     if ((e as { code?: string }).code === "23505") throw new SlugTakenError("slug taken", { cause: e });
@@ -72,7 +76,3 @@ export async function deleteContentRow(table: Table, id: string) {
   await sql`delete from ${sql(table)} where id = ${id}`;
 }
 
-export async function saveSetting<K extends keyof Settings>(key: K, value: Settings[K]) {
-  await sql`insert into settings (key, value) values (${key}, ${asJsonb(value)})
-            on conflict (key) do update set value = excluded.value, updated_at = now()`;
-}

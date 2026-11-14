@@ -104,12 +104,14 @@ docker compose exec app npm run db:seed
 docker compose exec app npm run admin:create -- admin "اسم المالك" owner
 ```
 
-- وجّه سجل DNS من نوع A للدومين (و `www`) إلى عنوان السيرفر قبل التشغيل، عشان Caddy يصدر الشهادة.
+- وجّه سجل DNS من نوع A للدومين **و `www`** إلى عنوان السيرفر قبل التشغيل، عشان Caddy يصدر الشهادتين (بدون سجل `www` يفشل إصدار شهادتها فقط ويعيد المحاولة).
+- `APP_SECRET` و `POSTGRES_PASSWORD` لازم تكون قيم عشوائية قوية (`openssl rand -base64 48`). الموقع يرفض يشتغل في الإنتاج بدون `APP_SECRET` (32 حرف أو أكثر).
+- بعد أول تشغيل جدول مهمتين يومياً بـ cron: الحذف التلقائي (القسم 10) والنسخ الاحتياطي (القسم 9).
 - افتح المنفذين 80 و 443 فقط. منفذ الموقع 3000 وقاعدة البيانات غير مكشوفين للخارج.
 - **التحديث:** `git pull && docker compose up -d --build`.
 - **بيئة تجربة:** نفس الخطوات على دومين فرعي (مثل `staging.example.com`) بقاعدة مستقلة و `SITE_NOINDEX=1`.
 
-> ملف Docker ما تجرّب بناؤه في بيئة التطوير (Docker غير متاح فيها). أول بناء على السيرفر هو أول تجربة له.
+> جُرّب بناء صورة Docker وتشغيلها على قاعدة فاضية: تطبيق الـ migrations، التشغيل، `/api/health`، الصفحة الرئيسية، `db:seed` و `admin:create`، والكتابة في مجلد الرفع بمستخدم غير root.
 
 بديل بدون Docker: أي استضافة تشغّل Node 20+ بأمر `npm run build && npm run db:migrate && npm run start`، مع PostgreSQL (مثل Supabase أو Neon) ومجلد دائم لـ `UPLOAD_DIR`، وبروكسي HTTPS قدّامها.
 
@@ -192,9 +194,9 @@ app/admin/         لوحة الإدارة (login والأقسام داخل (pan
 app/api/           requests (استقبال النموذج)، events (عدّادات مجهولة)، health
 app/media/         تقديم الملفات المرفوعة
 components/        مكونات الواجهة (Hero, Nav, Footer, ContactForm, ServiceCards, Works ...)
-lib/               db, auth (الجلسات والصلاحيات), rate-limit, audit, crypto, requests (التحقق والحفظ), notify, content, uploads
+lib/               db, auth (الجلسات), roles (الصلاحيات), rate-limit, audit, crypto, intake (التحقق من طلبات الموقع وحفظها), notify, content (قراءة المحتوى المنشور), settings, preview, uploads
 lib/intents.ts     أنواع الطلبات وحالاتها      lib/dates.ts  تواريخ بتوقيت الرياض
-lib/admin/         استعلامات اللوحة (requests, users, content) — الصفحات والعمليات ما تكتب SQL مباشرة
+lib/admin/         استعلامات اللوحة (requests, users, content, work-media) — الصفحات والعمليات ما تكتب SQL مباشرة
 db/migrations/     ملفات SQL للجداول          db/seed-data.ts  المحتوى الأولي
 scripts/           migrate, seed, create-admin, retention, backup.sh, restore.sh
 proxy.ts           ترويسة CSP لكل طلب وحماية أولية لمسار /admin

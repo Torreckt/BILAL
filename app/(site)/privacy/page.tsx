@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getLinks, getSetting } from "@/lib/content";
+import { getLinks, getSetting } from "@/lib/settings";
 
 export const metadata: Metadata = {
   title: "سياسة الخصوصية",
