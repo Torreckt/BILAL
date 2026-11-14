@@ -53,7 +53,7 @@ export function Footer({ links, services }: { links: Links; services: { slug: st
             <Eye className="footer__eye" tone="light" />
             <span dir="ltr">Mainstream</span>
           </a>
-          <p className="footer__about">وكالة تسويق متكاملة في الرياض. نصنع الضجة.. وأنت تملك الأضواء.</p>
+          <p className="footer__about">وكالة تسويق متكاملة. نصنع الضجة.. وأنت تملك الأضواء.</p>
           <ul className="footer__social" aria-label="حساباتنا">
             {socials.map((s) => (
               <li key={s.label}>

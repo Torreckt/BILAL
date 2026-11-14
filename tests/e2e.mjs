@@ -189,7 +189,7 @@ try {
 
   const bad = [
     ["no phone or email", { type: "inquiry", idem: uuid(), name: "بدون تواصل", subject: "س", message: "سؤال بدون وسيلة تواصل" }, "phone"],
-    ["meeting day in the past (Riyadh time)", { type: "meeting", idem: uuid(), name: "قديم", phone: "0500000000", meetingType: "اجتماع حضوري", day: "2020-01-01" }, "day"],
+    ["meeting day in the past (Riyadh time)", { type: "meeting", idem: uuid(), name: "قديم", phone: "0500000000", meetingType: "مكالمة هاتفية", day: "2020-01-01" }, "day"],
     ["quote without a service", { type: "quote", idem: uuid(), name: "عرض", phone: "0500000000", business: "نشاط", message: "وصف كافي للاحتياج", services: [] }, "services"],
     ["quote with an unknown service", { type: "quote", idem: uuid(), name: "عرض", phone: "0500000000", business: "نشاط", message: "وصف كافي للاحتياج", services: ["nope"] }, "services"],
     ["partnership without a proposal", { type: "partner", idem: uuid(), name: "جهة", phone: "0500000000", business: "جهة" }, "message"],
@@ -362,7 +362,7 @@ try {
   const html = await home.text();
   check("home: canonical, share tags and structured data in the HTML", html.includes(`<link rel="canonical" href="${BASE}"/>`) && html.includes('property="og:image"') && html.includes('"@type":"FAQPage"') && html.includes("فريقك التسويقي المتكامل"));
   const svc = await (await pub("/services/social")).text();
-  check("service page: own title, description and canonical", svc.includes("<title>إدارة حسابات السوشال ميديا في الرياض") && svc.includes(`<link rel="canonical" href="${BASE}/services/social"`) && svc.includes('"@type":"Service"'));
+  check("service page: own title, description and canonical", svc.includes("<title>إدارة حسابات السوشال ميديا في السعودية") && svc.includes(`<link rel="canonical" href="${BASE}/services/social"`) && svc.includes('"@type":"Service"'));
   const robots = await (await pub("/robots.txt")).text();
   check("robots.txt blocks the dashboard and points to the sitemap", robots.includes("Disallow: /admin") && robots.includes(`Sitemap: ${BASE}/sitemap.xml`));
   const sitemap = await (await pub("/sitemap.xml")).text();

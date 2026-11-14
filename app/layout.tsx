@@ -16,17 +16,17 @@ const tajawal = Tajawal({
 });
 
 const description =
-  "وكالة تسويق متكاملة في الرياض: تسويق وإعلانات، سوشال ميديا، كتابة محتوى، تصوير، مونتاج، تصميم مواقع، هوية، وتدريب الكوفيهات. نصنع الضجة.. وأنت تملك الأضواء.";
+  "وكالة تسويق متكاملة في السعودية: تسويق وإعلانات، سوشال ميديا، كتابة محتوى، تصوير، مونتاج، تصميم مواقع، هوية، وتدريب الكوفيهات. نصنع الضجة.. وأنت تملك الأضواء.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(env.siteUrl),
-  title: { default: "ماين ستريم | Mainstream — وكالة تسويق في الرياض", template: "%s | ماين ستريم Mainstream" },
+  title: { default: "ماين ستريم | Mainstream — وكالة تسويق في السعودية", template: "%s | ماين ستريم Mainstream" },
   description,
   alternates: { canonical: "/" },
   openGraph: {
     siteName: "ماين ستريم Mainstream",
-    title: "ماين ستريم | Mainstream — وكالة تسويق في الرياض",
-    description: "وكالة تسويق متكاملة في الرياض. نصنع الضجة.. وأنت تملك الأضواء.",
+    title: "ماين ستريم | Mainstream — وكالة تسويق في السعودية",
+    description: "وكالة تسويق متكاملة في السعودية. نصنع الضجة.. وأنت تملك الأضواء.",
     images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "ماين ستريم — نصنع الضجة.. وأنت تملك الأضواء" }],
     locale: "ar_SA",
     type: "website",

@@ -31,7 +31,7 @@ const schema = z
       meetingType: z.enum(meetingTypes as [string, ...string[]], "اختر نوع الاجتماع"),
       day: optional(10).refine(
         (v) => !v || (/^\d{4}-\d{2}-\d{2}$/.test(v) && v >= riyadhToday() && v <= riyadhToday(120)),
-        "اختر يوم من اليوم وطالع (بتوقيت الرياض)",
+        "اختر يوم من اليوم وطالع",
       ),
       time: optional(20).refine((v) => !v || meetingTimes.includes(v), "اختر فترة من القائمة"),
       message: optional(2000),
