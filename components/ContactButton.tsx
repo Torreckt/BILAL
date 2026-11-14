@@ -7,6 +7,8 @@ type Props = {
   variant?: "red" | "ink" | "paper";
   size?: "md" | "lg";
   className?: string;
+  /** "/" on pages that have no contact section, so the button goes to the one on the home page. */
+  base?: string;
 };
 
 const icons: Record<ContactIntent, React.ReactNode> = {
@@ -37,9 +39,9 @@ const icons: Record<ContactIntent, React.ReactNode> = {
 };
 
 // Ribbon button that takes the visitor to the contact section with a request type already chosen.
-export function ContactButton({ children, intent = "meeting", variant = "red", size = "md", className = "" }: Props) {
+export function ContactButton({ children, intent = "meeting", variant = "red", size = "md", className = "", base = "" }: Props) {
   return (
-    <a className={`ribbon-btn ribbon-btn--${variant} ribbon-btn--${size} ${className}`} href={`#contact-${intent}`}>
+    <a className={`ribbon-btn ribbon-btn--${variant} ribbon-btn--${size} ${className}`} href={`${base}#contact-${intent}`}>
       <svg className="ribbon-btn__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
         {icons[intent]}
       </svg>

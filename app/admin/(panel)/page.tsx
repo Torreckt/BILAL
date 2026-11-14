@@ -1,0 +1,134 @@
+import { CONTENT_ROLES, REQUEST_ROLES, requireUser } from "@/lib/auth";
+import { sql } from "@/lib/db";
+import { intentLabel, statusLabels } from "@/lib/site";
+import { Badge, Flash, statusTone, when, type Search } from "../ui";
+
+export default async function Overview({ searchParams }: { searchParams: Search }) {
+  const user = await requireUser();
+  const sp = await searchParams;
+  const seesRequests = REQUEST_ROLES.includes(user.role);
+  const seesContent = CONTENT_ROLES.includes(user.role);
+
+  // Follow-up rule: new for over a day, or open with no change for three days.
+  const [stats] = seesRequests
+    ? await sql<{ fresh: number; follow: number; open: number; failed: number; mine: number }[]>`
+        select count(*) filter (where status = 'new')::int as fresh,
+               count(*) filter (where (status = 'new' and created_at < now() - interval '1 day')
+                                   or (status not in ('new', 'closed') and updated_at < now() - interval '3 days'))::int as follow,
+               count(*) filter (where status <> 'closed')::int as open,
+               count(*) filter (where notify_status = 'failed')::int as failed,
+               count(*) filter (where assignee_id = ${user.id} and status <> 'closed')::int as mine
+        from requests`
+    : [];
+  const recent = seesRequests
+    ? await sql<{ id: string; ref: string; type: string; status: string; name: string; created_at: Date }[]>`
+        select id, ref, type, status, name, created_at from requests order by created_at desc limit 6`
+    : [];
+  const funnel = seesRequests
+    ? await sql<{ name: string; n: number }[]>`
+        select name, count(*)::int as n from events where created_at > now() - interval '30 days' group by name`
+    : [];
+  const [content] = seesContent
+    ? await sql<{ services: number; works: number; faqs: number; drafts: number }[]>`
+        select (select count(*) from services where status = 'published')::int as services,
+               (select count(*) from works where status = 'published')::int as works,
+               (select count(*) from faqs where status = 'published')::int as faqs,
+               ((select count(*) from services where status = 'draft') + (select count(*) from works where status = 'draft')
+                 + (select count(*) from faqs where status = 'draft'))::int as drafts`
+    : [];
+  const count = (name: string) => funnel.find((f) => f.name === name)?.n ?? 0;
+
+  return (
+    <>
+      <h1 className="adm-title">هلا {user.name}</h1>
+      {sp.denied && <p className="adm-flash adm-flash--error" role="alert">ما عندك صلاحية لهذي الصفحة.</p>}
+      <Flash sp={sp} />
+
+      {stats && (
+        <>
+          <ul className="adm-stats">
+            <li className={stats.fresh ? "is-hot" : ""}>
+              <a href="/admin/requests?status=new">
+                <strong>{stats.fresh}</strong> طلبات جديدة
+              </a>
+            </li>
+            <li className={stats.follow ? "is-hot" : ""}>
+              <a href="/admin/requests?follow=1">
+                <strong>{stats.follow}</strong> تحتاج متابعة
+              </a>
+            </li>
+            <li>
+              <a href={`/admin/requests?assignee=${user.id}`}>
+                <strong>{stats.mine}</strong> مسندة لي
+              </a>
+            </li>
+            <li>
+              <a href="/admin/requests?open=1">
+                <strong>{stats.open}</strong> طلبات مفتوحة
+              </a>
+            </li>
+            {stats.failed > 0 && (
+              <li className="is-hot">
+                <a href="/admin/requests?notify=failed">
+                  <strong>{stats.failed}</strong> تنبيهات بريد فشلت
+                </a>
+              </li>
+            )}
+          </ul>
+          <p className="adm-muted">
+            آخر 30 يوم: {count("request_saved")} طلب محفوظ من الموقع، و{count("whatsapp_click")} نقرة متابعة على واتساب.
+          </p>
+
+          <section className="adm-card">
+            <h2>آخر الطلبات</h2>
+            {recent.length ? (
+              <ul className="adm-list">
+                {recent.map((r) => (
+                  <li key={r.id}>
+                    <a href={`/admin/requests/${r.id}`}>
+                      <span className="adm-ref" dir="ltr">{r.ref}</span>
+                      <span>{r.name}</span>
+                      <span className="adm-muted">{intentLabel(r.type)}</span>
+                      <Badge tone={statusTone(r.status)}>{statusLabels[r.status]}</Badge>
+                      <time className="adm-muted">{when(r.created_at)}</time>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="adm-muted">ما وصلت طلبات لسا. أول طلب من نموذج الموقع بيظهر هنا.</p>
+            )}
+          </section>
+        </>
+      )}
+
+      {content && (
+        <section className="adm-card">
+          <h2>المحتوى المنشور</h2>
+          <ul className="adm-stats adm-stats--plain">
+            <li>
+              <a href="/admin/services">
+                <strong>{content.services}</strong> خدمات
+              </a>
+            </li>
+            <li>
+              <a href="/admin/works">
+                <strong>{content.works}</strong> أعمال
+              </a>
+            </li>
+            <li>
+              <a href="/admin/faqs">
+                <strong>{content.faqs}</strong> أسئلة
+              </a>
+            </li>
+            <li>
+              <span>
+                <strong>{content.drafts}</strong> مسودات غير منشورة
+              </span>
+            </li>
+          </ul>
+        </section>
+      )}
+    </>
+  );
+}

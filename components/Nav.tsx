@@ -1,19 +1,24 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Eye } from "./Eye";
 import { ContactButton } from "./ContactButton";
 
 const links = [
-  { href: "#services", label: "الخدمات" },
-  { href: "#why", label: "ليش ماين ستريم" },
-  { href: "#process", label: "كيف نشتغل" },
+  { href: "/#services", label: "الخدمات" },
+  { href: "/work", label: "أعمالنا" },
+  { href: "/#why", label: "ليش ماين ستريم" },
+  { href: "/#process", label: "كيف نشتغل" },
   { href: "#contact", label: "تواصل معنا" },
 ];
 
 export function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  // Every public page carries the contact section except the privacy page.
+  const base = pathname === "/privacy" ? "/" : "";
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
     onScroll();
@@ -38,7 +43,7 @@ export function Nav() {
   return (
     <header className={`nav ${scrolled || open ? "is-scrolled" : ""} ${open ? "is-open" : ""}`}>
       <div className="nav__inner wrap">
-        <a className="brand" href="#top" aria-label="ماين ستريم — الرئيسية">
+        <a className="brand" href="/" aria-label="ماين ستريم — الرئيسية">
           <Eye className="brand__eye" />
           <span className="brand__word" dir="ltr">
             Mainstream
@@ -51,15 +56,19 @@ export function Nav() {
           <ul className="nav__links">
             {links.map((l) => (
               <li key={l.href}>
-                <a href={l.href} onClick={() => setOpen(false)}>
+                <a
+                  href={l.href.startsWith("#") ? base + l.href : l.href}
+                  aria-current={l.href === pathname ? "page" : undefined}
+                  onClick={() => setOpen(false)}
+                >
                   {l.label}
                 </a>
               </li>
             ))}
           </ul>
         </nav>
-        <ContactButton variant="ink" className="nav__cta">
-          احجز اجتماع
+        <ContactButton variant="ink" className="nav__cta" base={base}>
+          اطلب اجتماع
         </ContactButton>
         <button
           type="button"

@@ -1,36 +1,67 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Icon, social } from "./icons";
 import {
-  caseFiles,
   contactIntents,
+  formatDay,
+  intentLabel,
   meetingTimes,
   meetingTypes,
+  riyadhToday,
   sectors,
   whatsappLink,
   type ContactIntent,
 } from "@/lib/site";
 
+type Props = {
+  services: { slug: string; title: string }[];
+  whatsapp: string;
+  initialIntent?: ContactIntent;
+  /** Service preselected for a quote, e.g. on that service's page. */
+  initialService?: string;
+};
+type Errors = Record<string, string>;
+type Sent = { ref: string; type: ContactIntent; services: string[]; day: string; name: string };
+
 const isIntent = (v: string): v is ContactIntent => contactIntents.some((c) => c.id === v);
+const track = (name: string, data: Record<string, unknown>) => {
+  // Anonymous funnel events only: never the visitor's name, phone or message.
+  (window as { dataLayer?: unknown[] }).dataLayer?.push({ event: name, ...data });
+};
+const pageSource = () => {
+  const utm = new URLSearchParams(location.search).get("utm_source");
+  return location.pathname + (utm ? `?utm_source=${utm.slice(0, 60)}` : "");
+};
 
-// One form for every way in: booking a meeting, a quote, a question or a partnership.
-// It hands the brief to WhatsApp as one tidy message.
-export function ContactForm() {
-  const [intent, setIntent] = useState<ContactIntent>("meeting");
-  const [picked, setPicked] = useState<string[]>([]);
-  const [error, setError] = useState(false);
+// One form for every way in: a meeting, a quote, a question or a partnership.
+// The request is saved on the server first; WhatsApp is an optional follow-up carrying the reference number.
+export function ContactForm({ services, whatsapp, initialIntent = "meeting", initialService }: Props) {
+  const [intent, setIntent] = useState<ContactIntent>(initialIntent);
+  const [picked, setPicked] = useState<string[]>(initialService ? [initialService] : []);
+  const [errors, setErrors] = useState<Errors>({});
+  const [state, setState] = useState<"idle" | "sending" | "failed">("idle");
+  const [sent, setSent] = useState<Sent | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const doneRef = useRef<HTMLDivElement>(null);
+  // One key per filled form: a double click or a retry after a dropped connection reuses it, so only one request is stored.
+  const idem = useRef("");
+  const openedAt = useRef(0);
+  useEffect(() => {
+    openedAt.current = Date.now();
+  }, []);
 
-  // Buttons elsewhere link to #contact-<intent> (anchors at the top of the section): pick that request type.
-  // Read from the click as well as the hash, so pressing the same button again still switches back.
+  // Buttons elsewhere link to #contact-<intent>: pick that request type (on click, and on arrival from another page).
   useEffect(() => {
     const pick = (hash: string) => {
-      const m = hash.match(/^#contact-(\w+)$/);
+      const m = hash.match(/#contact-(\w+)$/);
       if (!m || !isIntent(m[1])) return;
       setIntent(m[1]);
-      setError(false);
+      setErrors({});
+      setSent(null);
     };
     const onClick = (e: MouseEvent) => {
-      const a = (e.target as Element | null)?.closest?.('a[href^="#contact-"]');
+      const a = (e.target as Element | null)?.closest?.('a[href*="#contact-"]');
       if (a) pick(a.getAttribute("href")!);
     };
     pick(location.hash);
@@ -38,70 +69,139 @@ export function ContactForm() {
     return () => document.removeEventListener("click", onClick);
   }, []);
 
-  function toggle(title: string) {
-    setError(false);
-    setPicked((p) => (p.includes(title) ? p.filter((t) => t !== title) : [...p, title]));
+  useEffect(() => {
+    if (sent) doneRef.current?.focus();
+  }, [sent]);
+
+  function toggle(slug: string) {
+    setErrors((e) => ({ ...e, services: "" }));
+    setPicked((p) => (p.includes(slug) ? p.filter((s) => s !== slug) : [...p, slug]));
   }
 
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (intent === "quote" && !picked.length) {
-      setError(true);
-      return;
-    }
+    if (state === "sending") return;
     const f = new FormData(e.currentTarget);
     const get = (key: string) => String(f.get(key) ?? "").trim();
-    const meta = contactIntents.find((c) => c.id === intent)!;
-    const day = get("day");
-    const dayText = day
-      ? new Date(`${day}T12:00`).toLocaleDateString("ar-SA-u-ca-gregory-nu-latn", {
-          weekday: "long",
-          day: "numeric",
-          month: "long",
-        })
-      : "";
-
-    // A WhatsApp-ready template: bold section titles, one detail per line, empty sections left out.
-    const section = (title: string, rows: [string, string][]) => {
-      const filled = rows.filter(([, v]) => v);
-      return filled.length ? [`*${title}*`, ...filled.map(([k, v]) => `• ${k}: ${v}`), ""] : [];
+    idem.current ||= crypto.randomUUID();
+    const payload = {
+      type: intent,
+      idem: idem.current,
+      name: get("name"),
+      phone: get("phone"),
+      email: get("email"),
+      business: get("business"),
+      sector: get("sector"),
+      meetingType: get("meetingType"),
+      day: get("day"),
+      time: get("time"),
+      subject: get("subject"),
+      message: get("message"),
+      services: picked,
+      website: get("website"),
+      elapsed: Date.now() - openedAt.current,
+      source: pageSource(),
     };
-    const block = (title: string, body: string) => (body ? [`*${title}*`, body, ""] : []);
-
-    const msg = [
-      meta.title,
-      "",
-      `هلا ماين ستريم 👋 ${meta.opener}`,
-      "",
-      ...section("بيانات التواصل", [
-        ["الاسم", get("name")],
-        ["الجوال", get("phone")],
-      ]),
-      ...section("عن النشاط", [
-        ["اسم النشاط", get("business")],
-        ["نوع النشاط", get("sector")],
-      ]),
-      ...(intent === "meeting"
-        ? section("تفاصيل الاجتماع", [
-            ["نوع الاجتماع", get("meetingType")],
-            ["اليوم المناسب", dayText],
-            ["الوقت المناسب", get("time") || "أي وقت"],
-          ])
-        : []),
-      ...(intent === "quote" ? ["*الخدمات المطلوبة*", ...picked.map((t, i) => `${i + 1}. ${t}`), ""] : []),
-      ...(intent === "inquiry" ? block("الاستفسار", get("notes")) : []),
-      ...(intent === "partner" ? block("فكرة التعاون", get("notes")) : []),
-      ...(intent === "meeting" || intent === "quote" ? block("تفاصيل إضافية", get("notes")) : []),
-      "_مرسل من موقع ماين ستريم_",
-    ].join("\n");
-    window.open(whatsappLink(msg), "_blank", "noopener,noreferrer");
+    setState("sending");
+    setErrors({});
+    try {
+      const res = await fetch("/api/requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.ref) {
+        idem.current = "";
+        setState("idle");
+        setSent({ ref: data.ref, type: intent, services: picked, day: payload.day, name: payload.name });
+        track("request_saved", { request_type: intent, service: picked.join(","), source: payload.source });
+        return;
+      }
+      if (res.status === 422 && data.errors) {
+        setErrors(data.errors);
+        setState("idle");
+        // Move focus to the first field that needs fixing.
+        requestAnimationFrame(() => formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus());
+        return;
+      }
+      setErrors({ form: data.error ?? "صار خطأ من عندنا. جرّب مرة ثانية." });
+    } catch {
+      setErrors({ form: "انقطع الاتصال قبل ما يوصل طلبك. تأكد من النت واضغط إرسال مرة ثانية، وما راح يتكرر الطلب." });
+    }
+    setState("failed");
   }
 
-  const needsMessage = intent === "inquiry" || intent === "partner";
-  const today = new Date().toISOString().slice(0, 10);
+  if (sent) {
+    const titles = sent.services.map((s) => services.find((x) => x.slug === s)?.title ?? s);
+    const msg = [
+      `${contactIntents.find((c) => c.id === sent.type)!.emoji} *${intentLabel(sent.type)}*`,
+      `الرقم المرجعي: *${sent.ref}*`,
+      "",
+      `هلا ماين ستريم 👋 أنا ${sent.name}، أرسلت طلب من الموقع وأبغى أتابعه.`,
+      ...(titles.length ? ["", "*الخدمات المطلوبة*", ...titles.map((t, i) => `${i + 1}. ${t}`)] : []),
+      ...(sent.day ? ["", `اليوم المفضل: ${formatDay(sent.day)}`] : []),
+    ].join("\n");
+    const onWhatsApp = () => {
+      const data = { type: sent.type, service: sent.services.join(","), source: pageSource() };
+      track("whatsapp_click", { request_type: data.type, service: data.service, source: data.source });
+      navigator.sendBeacon?.("/api/events", new Blob([JSON.stringify({ name: "whatsapp_click", ...data })], { type: "application/json" }));
+    };
+    return (
+      <div className="sent" ref={doneRef} tabIndex={-1} role="status">
+        <p className="sent__stamp">وصلنا طلبك</p>
+        <p className="sent__ref">
+          رقمك المرجعي
+          <strong dir="ltr">{sent.ref}</strong>
+        </p>
+        <p className="sent__text">
+          {sent.type === "meeting"
+            ? "بيتواصل معك الفريق لتأكيد موعد الاجتماع. الموعد ما يعتبر مؤكد إلا بعد تواصلنا معك."
+            : "حفظنا طلبك وبيتواصل معك الفريق قريب. احتفظ بالرقم المرجعي للمتابعة."}
+        </p>
+        <div className="sent__actions">
+          <a
+            className="ribbon-btn ribbon-btn--red ribbon-btn--md"
+            href={whatsappLink(whatsapp, msg)}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onWhatsApp}
+          >
+            <Icon className="ribbon-btn__icon">{social.whatsapp}</Icon>
+            <span>تابع طلبك على واتساب</span>
+          </a>
+          <button type="button" className="text-link sent__again" onClick={() => setSent(null)}>
+            أرسل طلب ثاني
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const err = (name: string) =>
+    errors[name] ? (
+      <span id={`err-${name}`} className="quote__error" role="alert">
+        {errors[name]}
+      </span>
+    ) : null;
+  const aria = (name: string) => ({ "aria-invalid": !!errors[name] || undefined, "aria-describedby": errors[name] ? `err-${name}` : undefined });
+  const label = (text: string, optional = false) => (
+    <span>
+      {text} {optional && <em>(اختياري)</em>}
+    </span>
+  );
+  const businessLabel = intent === "partner" ? "اسم الجهة" : "اسم النشاط";
+  const businessRequired = intent === "quote" || intent === "partner";
+  const messageLabel = { meeting: "تفاصيل إضافية", quote: "وصف الاحتياج", inquiry: "سؤالك", partner: "مقترح التعاون" }[intent];
+  const messagePlaceholder = {
+    meeting: "مثلاً: عندنا افتتاح فرع جديد الشهر الجاي",
+    quote: "وش تحتاج بالضبط؟ مثلاً: إدارة حسابين وتصوير شهري",
+    inquiry: "اكتب سؤالك",
+    partner: "عرّفنا على فكرتك وكيف نتعاون",
+  }[intent];
 
   return (
-    <form className="quote__form" onSubmit={onSubmit}>
+    <form className="quote__form" ref={formRef} onSubmit={onSubmit} noValidate aria-busy={state === "sending"}>
       <fieldset className="contact__intents">
         <legend>وش تحتاج؟</legend>
         <div className="contact__tabs">
@@ -114,7 +214,7 @@ export function ContactForm() {
                 checked={intent === c.id}
                 onChange={() => {
                   setIntent(c.id);
-                  setError(false);
+                  setErrors({});
                 }}
               />
               {c.label}
@@ -123,119 +223,129 @@ export function ContactForm() {
         </div>
       </fieldset>
 
-      <div className="quote__row">
-        <label className="quote__field">
-          <span>الاسم</span>
-          <input name="name" required autoComplete="name" />
-        </label>
-        <label className="quote__field">
-          <span>
-            رقم التواصل <em>(اختياري)</em>
-          </span>
-          <input name="phone" type="tel" inputMode="tel" autoComplete="tel" dir="ltr" placeholder="05XXXXXXXX" />
+      {/* Hidden from people; bots that fill every field give themselves away. */}
+      <div className="quote__trap" aria-hidden="true">
+        <label>
+          لا تعبّي هذا الحقل
+          <input name="website" tabIndex={-1} autoComplete="off" />
         </label>
       </div>
 
+      <label className="quote__field">
+        {label("الاسم")}
+        <input name="name" required maxLength={80} autoComplete="name" {...aria("name")} />
+        {err("name")}
+      </label>
+
       <div className="quote__row">
         <label className="quote__field">
-          <span>
-            اسم النشاط <em>(اختياري)</em>
-          </span>
-          <input name="business" autoComplete="organization" />
+          {label("رقم الجوال")}
+          <input name="phone" type="tel" inputMode="tel" maxLength={24} autoComplete="tel" dir="ltr" placeholder="05XXXXXXXX" {...aria("phone")} />
+          {err("phone")}
         </label>
         <label className="quote__field">
-          <span>
-            نوع النشاط <em>(اختياري)</em>
-          </span>
-          <select name="sector" defaultValue="">
-            <option value="">اختر نوع نشاطك</option>
-            {sectors.map((s) => (
-              <option key={s}>{s}</option>
-            ))}
-            <option>غير ذلك</option>
-          </select>
+          {label("الإيميل")}
+          <input name="email" type="email" inputMode="email" maxLength={120} autoComplete="email" dir="ltr" placeholder="name@example.com" {...aria("email")} />
+          {err("email")}
         </label>
       </div>
+      <p className="quote__hint">يكفي واحد منهم: الجوال أو الإيميل.</p>
 
-      {intent === "meeting" && (
-        <div className="contact__meeting">
+      {intent === "inquiry" ? (
+        <label className="quote__field">
+          {label("موضوع الاستفسار")}
+          <input name="subject" required maxLength={120} {...aria("subject")} />
+          {err("subject")}
+        </label>
+      ) : (
+        <div className="quote__row">
           <label className="quote__field">
-            <span>نوع الاجتماع</span>
-            <select name="meetingType" required defaultValue="">
-              <option value="" disabled>
-                اختر
-              </option>
-              {meetingTypes.map((t) => (
-                <option key={t}>{t}</option>
-              ))}
-            </select>
+            {label(businessLabel, !businessRequired)}
+            <input name="business" required={businessRequired} maxLength={100} autoComplete="organization" {...aria("business")} />
+            {err("business")}
           </label>
           <label className="quote__field">
-            <span>
-              اليوم المناسب <em>(اختياري)</em>
-            </span>
-            <input name="day" type="date" min={today} />
-          </label>
-          <label className="quote__field">
-            <span>
-              الوقت المناسب <em>(اختياري)</em>
-            </span>
-            <select name="time" defaultValue="">
-              <option value="">أي وقت</option>
-              {meetingTimes.map((t) => (
-                <option key={t}>{t}</option>
+            {label("نوع النشاط", true)}
+            <select name="sector" defaultValue="">
+              <option value="">اختر نوع نشاطك</option>
+              {sectors.map((s) => (
+                <option key={s}>{s}</option>
               ))}
+              <option>غير ذلك</option>
             </select>
           </label>
         </div>
       )}
 
+      {intent === "meeting" && (
+        <>
+          <div className="contact__meeting">
+            <label className="quote__field">
+              {label("نوع الاجتماع")}
+              <select name="meetingType" required defaultValue="" {...aria("meetingType")}>
+                <option value="" disabled>
+                  اختر
+                </option>
+                {meetingTypes.map((t) => (
+                  <option key={t}>{t}</option>
+                ))}
+              </select>
+              {err("meetingType")}
+            </label>
+            <label className="quote__field">
+              {label("اليوم المفضل", true)}
+              <input name="day" type="date" min={riyadhToday()} max={riyadhToday(120)} {...aria("day")} />
+              {err("day")}
+            </label>
+            <label className="quote__field">
+              {label("الفترة المفضلة", true)}
+              <select name="time" defaultValue="">
+                <option value="">أي وقت</option>
+                {meetingTimes.map((t) => (
+                  <option key={t}>{t}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <p className="quote__hint">هذا طلب اجتماع، والموعد يتأكد بعد ما يتواصل معك الفريق. الأوقات بتوقيت الرياض.</p>
+        </>
+      )}
+
       {intent === "quote" && (
-        <fieldset className="quote__services" aria-describedby={error ? "quote-error" : undefined}>
+        <fieldset className="quote__services" aria-describedby={errors.services ? "err-services" : undefined}>
           <legend>وش الخدمات اللي تحتاجها؟</legend>
           <div className="quote__chips">
-            {caseFiles.map((s) => (
-              <label key={s.id} className={`quote__chip ${picked.includes(s.title) ? "is-on" : ""}`}>
-                <input type="checkbox" checked={picked.includes(s.title)} onChange={() => toggle(s.title)} />
+            {services.map((s) => (
+              <label key={s.slug} className={`quote__chip ${picked.includes(s.slug) ? "is-on" : ""}`}>
+                <input type="checkbox" checked={picked.includes(s.slug)} onChange={() => toggle(s.slug)} />
                 {s.title}
               </label>
             ))}
           </div>
-          {error && (
-            <p id="quote-error" className="quote__error" role="alert">
-              اختر خدمة وحدة على الأقل.
-            </p>
-          )}
+          {err("services")}
         </fieldset>
       )}
 
       <label className="quote__field">
-        <span>
-          {needsMessage ? "رسالتك" : "تفاصيل إضافية"} {!needsMessage && <em>(اختياري)</em>}
-        </span>
-        <textarea
-          name="notes"
-          rows={3}
-          required={needsMessage}
-          placeholder={
-            intent === "partner"
-              ? "عرّفنا على فكرتك أو جهتك"
-              : intent === "inquiry"
-                ? "اكتب سؤالك"
-                : "مثلاً: عندنا افتتاح فرع جديد الشهر الجاي"
-          }
-        />
+        {label(messageLabel, intent === "meeting")}
+        <textarea name="message" rows={3} maxLength={2000} required={intent !== "meeting"} placeholder={messagePlaceholder} {...aria("message")} />
+        {err("message")}
       </label>
 
-      <button type="submit" className="ribbon-btn ribbon-btn--red ribbon-btn--lg quote__submit">
-        <svg className="ribbon-btn__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path
-            fill="currentColor"
-            d="M12 2.2a9.7 9.7 0 0 0-8.4 14.6L2.3 21.7l5-1.3A9.7 9.7 0 1 0 12 2.2Zm0 17.7c-1.5 0-2.9-.4-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 19.9Zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.8.9c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1c0 1.2.9 2.4 1 2.6.1.2 1.8 2.7 4.3 3.8 1.6.7 2.2.7 3 .6.5-.1 1.4-.6 1.6-1.2.2-.6.2-1.1.1-1.2l-.5-.4Z"
-          />
-        </svg>
-        <span>أرسل على واتساب</span>
-      </button>
+      {errors.form && (
+        <p className="quote__error quote__error--form" role="alert">
+          {errors.form}
+        </p>
+      )}
+
+      <div className="quote__send">
+        <button type="submit" className="ribbon-btn ribbon-btn--red ribbon-btn--lg quote__submit" disabled={state === "sending"}>
+          <span>{state === "sending" ? "جاري الإرسال…" : state === "failed" ? "أعد الإرسال" : "أرسل الطلب"}</span>
+        </button>
+        <p className="quote__privacy">
+          بإرسالك الطلب توافق على <a href="/privacy">سياسة الخصوصية</a>.
+        </p>
+      </div>
     </form>
   );
 }

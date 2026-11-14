@@ -4,3 +4,8 @@ out
 next-env.d.ts
 *.tsbuildinfo
 .impeccable/config.local.json
+
+.env*
+!.env.example
+uploads
+backups

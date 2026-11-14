@@ -1,22 +1,13 @@
-import { Nav } from "@/components/Nav";
 import { Hero } from "@/components/Hero";
 import { ServiceCards } from "@/components/ServiceCards";
 import { EyeTracker } from "@/components/EyeTracker";
 import { Eye, Wave } from "@/components/Eye";
 import { ContactButton } from "@/components/ContactButton";
-import { Footer } from "@/components/Footer";
-import { ContactForm } from "@/components/ContactForm";
-import {
-  DEFAULT_MESSAGE,
-  INSTAGRAM_HANDLE,
-  TIKTOK_HANDLE,
-  WHATSAPP_NUMBER,
-  faqs,
-  reasons,
-  roles,
-  sectors,
-  whatsappLink,
-} from "@/lib/site";
+import { Contact } from "@/components/Contact";
+import { JsonLd } from "@/components/Prose";
+import { WorkCard } from "@/components/Works";
+import { getFaqs, getLinks, getServices, getWorks, wantsPreview, type Faq as FaqRow, type Service, type Work } from "@/lib/content";
+import { reasons, roles, sectors } from "@/lib/site";
 
 function Stream() {
   const phrase = (
@@ -49,7 +40,7 @@ function Stream() {
   );
 }
 
-function Services() {
+function Services({ services }: { services: Service[] }) {
   return (
     <section id="services" className="section services" aria-labelledby="services-title">
       <div className="wrap">
@@ -64,7 +55,7 @@ function Services() {
             اسألنا عن خدمة
           </ContactButton>
         </div>
-        <ServiceCards />
+        <ServiceCards services={services} />
       </div>
     </section>
   );
@@ -117,27 +108,25 @@ function OneSalary() {
   );
 }
 
-function Watchlist() {
+function Watchlist({ works, preview }: { works: Work[]; preview: boolean }) {
+  if (!works.length) return null;
   return (
-    <section className="section watchlist" aria-labelledby="watch-title">
+    <section id="work" className="section watchlist" aria-labelledby="watch-title">
       <div className="wrap">
         <div className="watchlist__head">
-          <h2 id="watch-title" className="display display--md">
-            قائمة المراقبة
-          </h2>
-          <p className="lede">ملفات عملائنا قيد التجهيز للنشر. قريباً تشوف الشغل بنفسك.</p>
+          <div>
+            <h2 id="watch-title" className="display display--md">
+              قائمة المراقبة
+            </h2>
+            <p className="lede">شغل سويناه بعيوننا. افتح أي ملف وشوف التفاصيل.</p>
+          </div>
+          <a className="text-link" href="/work">
+            كل الأعمال
+          </a>
         </div>
-        <ul className="watchlist__row">
-          {[0, 1, 2].map((i) => (
-            <li key={i} className="slot">
-              <span className="slot__tab" dir="ltr">
-                CLIENT FILE
-              </span>
-              <span className="slot__bar slot__bar--long" />
-              <span className="slot__bar" />
-              <span className="slot__bar slot__bar--short" />
-              <span className="slot__stamp">يُضاف قريباً</span>
-            </li>
+        <ul className="works">
+          {works.slice(0, 3).map((w) => (
+            <WorkCard key={w.id} work={w} preview={preview} />
           ))}
         </ul>
       </div>
@@ -147,7 +136,7 @@ function Watchlist() {
 
 function Process() {
   const steps = [
-    { t: "تكلّمنا واتساب", d: "رسالة وحدة تكفي. نحدد موعد اجتماع يناسبك." },
+    { t: "ترسل طلبك", d: "من النموذج أو واتساب. نتواصل معك ونحدد موعد اجتماع يناسبك." },
     { t: "نفهم نشاطك", d: "نجلس معك، نشوف جمهورك ومنافسينك، ونبني خطة الشهر." },
     { t: "نشغّل الضجة", d: "الفريق يبدأ: محتوى، تصوير، إعلانات. وآخر الشهر تقرير أداء واضح." },
   ];
@@ -229,102 +218,8 @@ function Sectors() {
   );
 }
 
-// 966500000000 → +966 50 000 0000
-const phoneDisplay = `+${WHATSAPP_NUMBER.slice(0, 3)} ${WHATSAPP_NUMBER.slice(3, 5)} ${WHATSAPP_NUMBER.slice(5, 8)} ${WHATSAPP_NUMBER.slice(8)}`;
-
-const channels = [
-  {
-    label: "واتساب",
-    value: "محادثة مباشرة مع الفريق",
-    href: whatsappLink(DEFAULT_MESSAGE),
-    icon: (
-      <path
-        fill="currentColor"
-        d="M12 2.2a9.7 9.7 0 0 0-8.4 14.6L2.3 21.7l5-1.3A9.7 9.7 0 1 0 12 2.2Zm0 17.7c-1.5 0-2.9-.4-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 19.9Zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.8.9c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1c0 1.2.9 2.4 1 2.6.1.2 1.8 2.7 4.3 3.8 1.6.7 2.2.7 3 .6.5-.1 1.4-.6 1.6-1.2.2-.6.2-1.1.1-1.2l-.5-.4Z"
-      />
-    ),
-  },
-  {
-    label: "اتصل علينا",
-    value: phoneDisplay,
-    href: `tel:+${WHATSAPP_NUMBER}`,
-    ltr: true,
-    icon: (
-      <path
-        fill="currentColor"
-        d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1l-2.3 2.2Z"
-      />
-    ),
-  },
-  {
-    label: "إنستغرام",
-    value: `@${INSTAGRAM_HANDLE}`,
-    href: `https://instagram.com/${INSTAGRAM_HANDLE}`,
-    ltr: true,
-    icon: (
-      <g fill="none" stroke="currentColor" strokeWidth="2">
-        <rect x="3" y="3" width="18" height="18" rx="5" />
-        <circle cx="12" cy="12" r="4" />
-        <circle cx="17.5" cy="6.5" r="0.6" fill="currentColor" stroke="none" />
-      </g>
-    ),
-  },
-  {
-    label: "تيك توك",
-    value: `@${TIKTOK_HANDLE}`,
-    href: `https://www.tiktok.com/@${TIKTOK_HANDLE}`,
-    ltr: true,
-    icon: (
-      <path
-        fill="currentColor"
-        d="M16.6 2h-3.4v13.3a2.9 2.9 0 1 1-2.9-2.9c.3 0 .6 0 .9.1V9a6.4 6.4 0 1 0 5.4 6.3V8.6a8.2 8.2 0 0 0 4.8 1.5V6.7a4.8 4.8 0 0 1-4.8-4.7Z"
-      />
-    ),
-  },
-];
-
-function Contact() {
-  return (
-    <section id="contact" className="section quote" aria-labelledby="contact-title">
-      {/* Scroll targets for ContactButton links; ContactForm reads which one was used. */}
-      <span id="contact-meeting" className="contact__anchor" />
-      <span id="contact-quote" className="contact__anchor" />
-      <span id="contact-inquiry" className="contact__anchor" />
-      <span id="contact-partner" className="contact__anchor" />
-      <div className="wrap quote__grid">
-        <div className="quote__intro">
-          <h2 id="contact-title" className="display display--md">
-            تواصل معنا
-          </h2>
-          <p className="lede">
-            تبي تحجز اجتماع، أو تطلب عرض سعر، أو عندك سؤال؟ اختر طلبك وعبّ النموذج، وبتنفتح لك رسالة واتساب جاهزة
-            ترسلها لنا بضغطة.
-          </p>
-          <ul className="contact__channels" aria-label="قنوات التواصل المباشر">
-            {channels.map((c) => (
-              <li key={c.label}>
-                <a href={c.href} target={c.href.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer">
-                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    {c.icon}
-                  </svg>
-                  <span className="contact__label">{c.label}</span>
-                  <span className="contact__value" dir={c.ltr ? "ltr" : undefined}>
-                    {c.value}
-                  </span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="quote__sheet">
-          <ContactForm />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Faq() {
+function Faq({ faqs }: { faqs: FaqRow[] }) {
+  if (!faqs.length) return null;
   return (
     <section id="faq" className="section faq" aria-labelledby="faq-title">
       <div className="wrap faq__grid">
@@ -333,9 +228,9 @@ function Faq() {
         </h2>
         <div className="faq__list">
           {faqs.map((f) => (
-            <details key={f.q} className="faq__item">
-              <summary>{f.q}</summary>
-              <p>{f.a}</p>
+            <details key={f.id} className="faq__item">
+              <summary>{f.question}</summary>
+              <p>{f.answer}</p>
             </details>
           ))}
         </div>
@@ -354,7 +249,7 @@ function Finale() {
           انت استرخ.. وخلي الإبداع علينا
         </h2>
         <ContactButton variant="paper" size="lg">
-          احجز اجتماعك الآن
+          اطلب اجتماعك الآن
         </ContactButton>
         <p className="tag tag--paper finale__tag" dir="ltr">
           WATCH US.
@@ -364,29 +259,33 @@ function Finale() {
   );
 }
 
-export default function Home() {
+export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+  const preview = await wantsPreview(searchParams);
+  const [services, works, faqs, links] = await Promise.all([getServices(preview), getWorks(preview), getFaqs(preview), getLinks()]);
   return (
     <>
-      <a className="skip" href="#main">
-        تخطَّ إلى المحتوى
-      </a>
-      <Nav />
-      <main id="main">
-        <span id="top" />
-        <Hero />
-        <Stream />
-        <Services />
-        <Why />
-        <OneSalary />
-        <Sectors />
-        <Watchlist />
-        <Process />
-        <Contact />
-        <Faq />
-        <Finale />
-      </main>
-      <Footer />
+      <span id="top" />
+      <Hero />
+      <Stream />
+      <Services services={services} />
+      <Why />
+      <OneSalary />
+      <Sectors />
+      <Watchlist works={works} preview={preview} />
+      <Process />
+      <Contact links={links} services={services} />
+      <Faq faqs={faqs} />
+      <Finale />
       <EyeTracker />
+      {faqs.length > 0 && (
+        <JsonLd
+          data={{
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.question, acceptedAnswer: { "@type": "Answer", text: f.answer } })),
+          }}
+        />
+      )}
     </>
   );
 }

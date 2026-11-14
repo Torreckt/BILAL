@@ -82,7 +82,7 @@ export function Hero() {
           <strong>نصنع الضجة.. وأنت تملك الأضواء.</strong>
         </p>
         <div className="hero__actions">
-          <ContactButton size="lg">احجز اجتماعك</ContactButton>
+          <ContactButton size="lg">اطلب اجتماعك</ContactButton>
           <a className="text-link" href="#services">
             شوف خدماتنا
           </a>
