@@ -57,6 +57,12 @@ export const getFaqs = cache(
   (drafts = false) => sql<Faq[]>`select * from faqs where ${visible(drafts)} order by position, question`,
 );
 
+/** How many of these slugs are published services (to reject quote requests naming unknown ones). */
+export async function publishedServiceCount(slugs: string[]) {
+  const [{ n }] = await sql<{ n: number }[]>`select count(*)::int as n from services where status = 'published' and slug in ${sql(slugs)}`;
+  return n;
+}
+
 export const getSetting = cache(async <T>(key: string, fallback: T): Promise<T> => {
   const [row] = await sql<{ value: T }[]>`select value from settings where key = ${key}`;
   return row ? row.value : fallback;

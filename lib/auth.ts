@@ -1,9 +1,10 @@
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { sql } from "./db";
 import { env } from "./env";
-import { fingerprint, randomToken, sha256 } from "./crypto";
+import { randomToken, sha256 } from "./crypto";
+import { SESSION_COOKIE_PLAIN, SESSION_COOKIE_SECURE } from "./session-cookie";
 
 export type Role = "owner" | "agent" | "editor";
 export type SessionUser = { id: string; email: string; name: string; role: Role; totp_enabled: boolean; mfa_ok: boolean };
@@ -13,7 +14,7 @@ export const roleLabels: Record<Role, string> = { owner: "مالك", agent: "م�
 export const REQUEST_ROLES: Role[] = ["owner", "agent"];
 export const CONTENT_ROLES: Role[] = ["owner", "editor"];
 
-const COOKIE = env.secureCookies ? "__Host-ms_session" : "ms_session";
+const COOKIE = env.secureCookies ? SESSION_COOKIE_SECURE : SESSION_COOKIE_PLAIN;
 const ABSOLUTE_HOURS = 12;
 const IDLE_MINUTES = 120;
 
@@ -37,10 +38,21 @@ export async function destroySession() {
   jar.delete(COOKIE);
 }
 
-export const sessionTokenHash = async () => {
+const sessionTokenHash = async () => {
   const token = (await cookies()).get(COOKIE)?.value;
   return token ? sha256(token) : null;
 };
+
+/** Marks the current browser's session as having passed the second step. */
+export async function markSessionMfaOk() {
+  await sql`update sessions set mfa_ok = true where token_hash = ${await sessionTokenHash()}`;
+}
+
+/** Signs an account out everywhere; with `keepCurrent`, the browser making this request stays signed in. */
+export async function endSessions(userId: string, { keepCurrent = false } = {}) {
+  const keep = keepCurrent ? await sessionTokenHash() : null;
+  await sql`delete from sessions where user_id = ${userId} and ${keep ? sql`token_hash <> ${keep}` : sql`true`}`;
+}
 
 /** The signed-in account, or null. Password alone gives mfa_ok=false, which opens nothing but the MFA step. */
 export const getSession = cache(async (): Promise<SessionUser | null> => {
@@ -64,33 +76,4 @@ export async function requireUser(...roles: Role[]): Promise<SessionUser> {
   if (!user.mfa_ok) redirect("/admin/mfa");
   if (roles.length && !roles.includes(user.role)) redirect("/admin?denied=1");
   return user;
-}
-
-export async function clientKey() {
-  const h = await headers();
-  const ip = h.get("x-forwarded-for")?.split(",")[0].trim() || h.get("x-real-ip") || "local";
-  return fingerprint(ip);
-}
-
-/** Fixed-window counter in the database, so limits hold across restarts and instances. */
-export async function allow(key: string, limit: number, windowSeconds: number) {
-  const [row] = await sql<{ count: number }[]>`
-    insert into rate_limits (key, bucket)
-    values (${key}, to_timestamp(floor(extract(epoch from now()) / ${windowSeconds}) * ${windowSeconds}))
-    on conflict (key, bucket) do update set count = rate_limits.count + 1
-    returning count`;
-  // Old counters are cleared now and then, so the table stays small even without the daily retention job.
-  if (Math.random() < 0.02) await sql`delete from rate_limits where bucket < now() - interval '2 days'`;
-  return row.count <= limit;
-}
-
-export async function audit(
-  actor: { id: string; name: string } | null,
-  action: string,
-  entity: string,
-  entityId: string | null,
-  meta: Record<string, unknown> = {},
-) {
-  await sql`insert into audit_log (actor_id, actor_name, action, entity, entity_id, meta)
-            values (${actor?.id ?? null}, ${actor?.name ?? null}, ${action}, ${entity}, ${entityId}, ${sql.json(meta as never)})`;
 }

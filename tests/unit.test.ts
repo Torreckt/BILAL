@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { decrypt, encrypt, hashPassword, totpAt, verifyPassword, verifyTotp } from "../lib/crypto";
 import { parseRequest } from "../lib/requests";
-import { riyadhToday, statusesFor } from "../lib/site";
+import { riyadhToday } from "../lib/dates";
+import { statusesFor } from "../lib/intents";
 
 const idem = "3f2b8c1e-5d4a-4b6f-9e21-0a1b2c3d4e5f";
 

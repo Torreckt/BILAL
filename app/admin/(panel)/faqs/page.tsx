@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { CONTENT_ROLES, requireUser } from "@/lib/auth";
 import { getFaqs, type Faq } from "@/lib/content";
-import { deleteContent, saveFaq } from "../../actions";
-import { Badge, Flash, type Search } from "../../ui";
+import { deleteContent, saveFaq } from "../../actions/content";
+import { PublishedBadge, Flash, type Search } from "../../ui";
 
 export const metadata: Metadata = { title: "الأسئلة الشائعة" };
 
@@ -47,7 +47,7 @@ export default async function Faqs({ searchParams }: { searchParams: Search }) {
       {rows.map((f) => (
         <details key={f.id} className="adm-card">
           <summary>
-            {f.question} <Badge tone={f.status === "published" ? "green" : "paper"}>{f.status === "published" ? "منشور" : "مسودة"}</Badge>
+            {f.question} <PublishedBadge status={f.status} />
           </summary>
           <FaqForm faq={f} />
           <form className="adm-row" action={deleteContent}>

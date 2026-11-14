@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/auth";
-import { sql } from "@/lib/db";
+import { recentAudit } from "@/lib/audit";
 import { when } from "../../ui";
 
 export const metadata: Metadata = { title: "سجل التغييرات" };
@@ -20,8 +20,7 @@ const labels: Record<string, string> = {
 
 export default async function Audit() {
   await requireUser("owner");
-  const rows = await sql<{ id: string; actor_name: string | null; action: string; meta: Record<string, unknown>; created_at: Date }[]>`
-    select id, actor_name, action, meta, created_at from audit_log order by created_at desc limit 300`;
+  const rows = await recentAudit(300);
   return (
     <>
       <h1 className="adm-title">سجل التغييرات</h1>

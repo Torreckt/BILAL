@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { enrollmentQr } from "@/lib/mfa";
-import { logout, verifyMfa } from "../actions";
+import { logout, verifyMfa } from "../actions/auth";
 import { Flash, type Search } from "../ui";
 
 export const metadata: Metadata = { title: "التحقق بخطوتين" };

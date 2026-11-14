@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Eye } from "./Eye";
 import { ContactButton } from "./ContactButton";
-import { roles } from "@/lib/site";
+import { teamRoles } from "@/lib/site";
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -38,12 +38,12 @@ export function Hero() {
 
     (async () => {
       await wait(450);
-      for (let i = 0; i < roles.length; i++) {
+      for (let i = 0; i < teamRoles.length; i++) {
         if (cancelled) return;
         setActive(i);
         moveReticle(i);
         await wait(230);
-        const chars = Array.from(roles[i]);
+        const chars = Array.from(teamRoles[i]);
         for (let k = 1; k <= chars.length; k++) {
           if (cancelled) return;
           const el = labels[i];
@@ -62,7 +62,7 @@ export function Hero() {
     return () => {
       cancelled = true;
       window.removeEventListener("resize", onResize);
-      labels.forEach((el, i) => el && (el.textContent = roles[i]));
+      labels.forEach((el, i) => el && (el.textContent = teamRoles[i]));
     };
   }, []);
 
@@ -91,7 +91,7 @@ export function Hero() {
 
       <div className="hero__stage">
         <ul className="sr-only">
-          {roles.map((r) => (
+          {teamRoles.map((r) => (
             <li key={r}>{r}</li>
           ))}
         </ul>
@@ -102,7 +102,7 @@ export function Hero() {
           onPointerLeave={() => phase === "done" && setActive(null)}
         >
           <ol className="wall__grid">
-            {roles.map((role, i) => (
+            {teamRoles.map((role, i) => (
               <li
                 key={role}
                 className={`frame ${active === i ? "is-active" : ""}`}

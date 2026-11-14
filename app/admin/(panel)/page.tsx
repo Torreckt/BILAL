@@ -1,6 +1,8 @@
 import { CONTENT_ROLES, REQUEST_ROLES, requireUser } from "@/lib/auth";
-import { sql } from "@/lib/db";
-import { intentLabel, statusLabels } from "@/lib/site";
+import { contentCounts } from "@/lib/admin/content";
+import { recentRequests, requestStats } from "@/lib/admin/requests";
+import { eventCounts } from "@/lib/events";
+import { intentLabel, statusLabels } from "@/lib/intents";
 import { Badge, Flash, statusTone, when, type Search } from "../ui";
 
 export default async function Overview({ searchParams }: { searchParams: Search }) {
@@ -9,34 +11,12 @@ export default async function Overview({ searchParams }: { searchParams: Search 
   const seesRequests = REQUEST_ROLES.includes(user.role);
   const seesContent = CONTENT_ROLES.includes(user.role);
 
-  // Follow-up rule: new for over a day, or open with no change for three days.
-  const [stats] = seesRequests
-    ? await sql<{ fresh: number; follow: number; open: number; failed: number; mine: number }[]>`
-        select count(*) filter (where status = 'new')::int as fresh,
-               count(*) filter (where (status = 'new' and created_at < now() - interval '1 day')
-                                   or (status not in ('new', 'closed') and updated_at < now() - interval '3 days'))::int as follow,
-               count(*) filter (where status <> 'closed')::int as open,
-               count(*) filter (where notify_status = 'failed')::int as failed,
-               count(*) filter (where assignee_id = ${user.id} and status <> 'closed')::int as mine
-        from requests`
-    : [];
-  const recent = seesRequests
-    ? await sql<{ id: string; ref: string; type: string; status: string; name: string; created_at: Date }[]>`
-        select id, ref, type, status, name, created_at from requests order by created_at desc limit 6`
-    : [];
-  const funnel = seesRequests
-    ? await sql<{ name: string; n: number }[]>`
-        select name, count(*)::int as n from events where created_at > now() - interval '30 days' group by name`
-    : [];
-  const [content] = seesContent
-    ? await sql<{ services: number; works: number; faqs: number; drafts: number }[]>`
-        select (select count(*) from services where status = 'published')::int as services,
-               (select count(*) from works where status = 'published')::int as works,
-               (select count(*) from faqs where status = 'published')::int as faqs,
-               ((select count(*) from services where status = 'draft') + (select count(*) from works where status = 'draft')
-                 + (select count(*) from faqs where status = 'draft'))::int as drafts`
-    : [];
-  const count = (name: string) => funnel.find((f) => f.name === name)?.n ?? 0;
+  const [stats, recent, count, content] = await Promise.all([
+    seesRequests ? requestStats(user.id) : undefined,
+    seesRequests ? recentRequests(6) : [],
+    seesRequests ? eventCounts(30) : () => 0,
+    seesContent ? contentCounts() : undefined,
+  ]);
 
   return (
     <>

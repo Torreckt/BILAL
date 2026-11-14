@@ -9,15 +9,15 @@ import {
 } from "node:crypto";
 import { env } from "./env";
 
-const N = 32768;
+const SCRYPT_COST = 32768;
 const scrypt = (pw: string, salt: Buffer) =>
   new Promise<Buffer>((ok, fail) =>
-    scryptCb(pw.normalize("NFKC"), salt, 32, { N, r: 8, p: 1, maxmem: 128 * 1024 * 1024 }, (e, k) => (e ? fail(e) : ok(k))),
+    scryptCb(pw.normalize("NFKC"), salt, 32, { N: SCRYPT_COST, r: 8, p: 1, maxmem: 128 * 1024 * 1024 }, (e, k) => (e ? fail(e) : ok(k))),
   );
 
 export async function hashPassword(pw: string) {
   const salt = randomBytes(16);
-  return `scrypt$${N}$${salt.toString("base64")}$${(await scrypt(pw, salt)).toString("base64")}`;
+  return `scrypt$${SCRYPT_COST}$${salt.toString("base64")}$${(await scrypt(pw, salt)).toString("base64")}`;
 }
 
 export async function verifyPassword(pw: string, stored: string) {
@@ -34,38 +34,38 @@ export const randomToken = () => randomBytes(32).toString("base64url");
 export const fingerprint = (s: string) => createHmac("sha256", env.appSecret).update(s).digest("hex").slice(0, 32);
 
 // AES-256-GCM for secrets at rest (TOTP seeds).
-const key = () => createHash("sha256").update(`enc:${env.appSecret}`).digest();
+const encryptionKey = () => createHash("sha256").update(`enc:${env.appSecret}`).digest();
 export function encrypt(text: string) {
   const iv = randomBytes(12);
-  const c = createCipheriv("aes-256-gcm", key(), iv);
-  const body = Buffer.concat([c.update(text, "utf8"), c.final()]);
-  return [iv, c.getAuthTag(), body].map((b) => b.toString("base64")).join(".");
+  const cipher = createCipheriv("aes-256-gcm", encryptionKey(), iv);
+  const body = Buffer.concat([cipher.update(text, "utf8"), cipher.final()]);
+  return [iv, cipher.getAuthTag(), body].map((b) => b.toString("base64")).join(".");
 }
 export function decrypt(packed: string) {
   const [iv, tag, body] = packed.split(".").map((p) => Buffer.from(p, "base64"));
-  const d = createDecipheriv("aes-256-gcm", key(), iv);
-  d.setAuthTag(tag);
-  return Buffer.concat([d.update(body), d.final()]).toString("utf8");
+  const decipher = createDecipheriv("aes-256-gcm", encryptionKey(), iv);
+  decipher.setAuthTag(tag);
+  return Buffer.concat([decipher.update(body), decipher.final()]).toString("utf8");
 }
 
 // TOTP (RFC 6238): SHA-1, 6 digits, 30-second steps — what authenticator apps expect.
-const B32 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+const BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 export function newTotpSecret() {
   let bits = "";
   for (const b of randomBytes(20)) bits += b.toString(2).padStart(8, "0");
-  return bits.match(/.{5}/g)!.map((c) => B32[parseInt(c, 2)]).join("");
+  return bits.match(/.{5}/g)!.map((chunk) => BASE32_ALPHABET[parseInt(chunk, 2)]).join("");
 }
 function base32Decode(s: string) {
   let bits = "";
-  for (const ch of s.replace(/=+$/, "").toUpperCase()) bits += B32.indexOf(ch).toString(2).padStart(5, "0");
+  for (const ch of s.replace(/=+$/, "").toUpperCase()) bits += BASE32_ALPHABET.indexOf(ch).toString(2).padStart(5, "0");
   return Buffer.from(bits.match(/.{8}/g)?.map((b) => parseInt(b, 2)) ?? []);
 }
 export function totpAt(secret: string, step: number) {
   const msg = Buffer.alloc(8);
   msg.writeBigUInt64BE(BigInt(step));
-  const h = createHmac("sha1", base32Decode(secret)).update(msg).digest();
-  const o = h[19] & 15;
-  return String((h.readUInt32BE(o) & 0x7fffffff) % 1e6).padStart(6, "0");
+  const hmac = createHmac("sha1", base32Decode(secret)).update(msg).digest();
+  const offset = hmac[19] & 15; // RFC 4226 dynamic truncation
+  return String((hmac.readUInt32BE(offset) & 0x7fffffff) % 1e6).padStart(6, "0");
 }
 /** Returns the matched time step (to reject replays), or null. Accepts one step of clock drift. */
 export function verifyTotp(secret: string, code: string, lastStep = 0, now = Date.now()) {

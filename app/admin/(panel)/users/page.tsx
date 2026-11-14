@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { requireUser, roleLabels, type Role } from "@/lib/auth";
-import { sql } from "@/lib/db";
-import { createUser, updateUser } from "../../actions";
+import { listUsers } from "@/lib/admin/users";
+import { createUser, updateUser } from "../../actions/users";
 import { Badge, Flash, type Search } from "../../ui";
 
 export const metadata: Metadata = { title: "المستخدمون" };
@@ -14,8 +14,7 @@ const roleHelp: Record<Role, string> = {
 
 export default async function Users({ searchParams }: { searchParams: Search }) {
   const me = await requireUser("owner");
-  const users = await sql<{ id: string; email: string; name: string; role: Role; active: boolean; totp_enabled: boolean }[]>`
-    select id, email, name, role, active, totp_enabled from users order by created_at`;
+  const users = await listUsers();
   return (
     <>
       <h1 className="adm-title">المستخدمون والصلاحيات</h1>

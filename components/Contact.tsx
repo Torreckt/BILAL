@@ -1,6 +1,7 @@
 import { ContactForm } from "./ContactForm";
 import { Icon, social } from "./icons";
-import { DEFAULT_MESSAGE, whatsappLink, type ContactIntent, type Links } from "@/lib/site";
+import type { ContactIntent } from "@/lib/intents";
+import { DEFAULT_MESSAGE, whatsappLink, type Links } from "@/lib/site";
 
 type Props = {
   links: Links;

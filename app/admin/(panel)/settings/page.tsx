@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { CONTENT_ROLES, requireUser } from "@/lib/auth";
 import { getLinks, getSetting } from "@/lib/content";
 import { env } from "@/lib/env";
-import { saveLinks, saveSystem } from "../../actions";
+import { saveLinks, saveSystem } from "../../actions/settings";
 import { Flash, type Search } from "../../ui";
 
 export const metadata: Metadata = { title: "الإعدادات" };

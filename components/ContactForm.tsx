@@ -2,17 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Icon, social } from "./icons";
-import {
-  contactIntents,
-  formatDay,
-  intentLabel,
-  meetingTimes,
-  meetingTypes,
-  riyadhToday,
-  sectors,
-  whatsappLink,
-  type ContactIntent,
-} from "@/lib/site";
+import { formatDay, riyadhToday } from "@/lib/dates";
+import { contactIntents, intentLabel, meetingTimes, meetingTypes, type ContactIntent } from "@/lib/intents";
+import { sectors, whatsappLink } from "@/lib/site";
 
 type Props = {
   services: { slug: string; title: string }[];

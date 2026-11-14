@@ -1,6 +1,7 @@
 import { after } from "next/server";
-import { allow, clientKey } from "@/lib/auth";
-import { sql } from "@/lib/db";
+import { clientKey, consumeRateLimit } from "@/lib/rate-limit";
+import { publishedServiceCount } from "@/lib/content";
+import { recordEvent } from "@/lib/events";
 import { notifyRequest } from "@/lib/notify";
 import { parseRequest, saveRequest } from "@/lib/requests";
 
@@ -31,7 +32,7 @@ export async function POST(req: Request) {
   if (body.website || Number(body.elapsed) < 2500) return json({ ok: true, ref: "MS-000000" });
 
   const ip = await clientKey();
-  if (!(await allow(`req:${ip}`, 5, 600)) || !(await allow(`req-day:${ip}`, 30, 86400))) {
+  if (!(await consumeRateLimit(`req:${ip}`, 5, 600)) || !(await consumeRateLimit(`req-day:${ip}`, 30, 86400))) {
     return json({ error: "أرسلت طلبات كثيرة. جرّب بعد شوي أو كلّمنا واتساب." }, 429);
   }
 
@@ -40,14 +41,12 @@ export async function POST(req: Request) {
   const data = parsed.data;
 
   if (data.type === "quote") {
-    const known = await sql<{ title: string }[]>`select title from services where status = 'published' and slug in ${sql(data.services)}`;
-    if (known.length !== new Set(data.services).size) return json({ errors: { services: "اختر الخدمات من القائمة" } }, 422);
+    if ((await publishedServiceCount(data.services)) !== new Set(data.services).size) return json({ errors: { services: "اختر الخدمات من القائمة" } }, 422);
   }
 
   const saved = await saveRequest(data, ip);
   if (saved.created) {
-    await sql`insert into events (name, request_type, service, source)
-              values ('request_saved', ${data.type}, ${data.type === "quote" ? data.services.join(",") : null}, ${data.source})`;
+    await recordEvent("request_saved", data.type, data.type === "quote" ? data.services.join(",") : null, data.source);
     // Email the team after the response is sent; the request is already safe in the database.
     after(() => notifyRequest(saved.id));
   }

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { CONTENT_ROLES, requireUser } from "@/lib/auth";
 import { getServices } from "@/lib/content";
-import { Badge, Flash, type Search } from "../../ui";
+import { PublishedBadge, Flash, type Search } from "../../ui";
 
 export const metadata: Metadata = { title: "الخدمات" };
 
@@ -22,7 +22,7 @@ export default async function Services({ searchParams }: { searchParams: Search 
               <span className="adm-muted">{s.position}</span>
               <strong>{s.title}</strong>
               <span className="adm-muted" dir="ltr">/services/{s.slug}</span>
-              <Badge tone={s.status === "published" ? "green" : "paper"}>{s.status === "published" ? "منشورة" : "مسودة"}</Badge>
+              <PublishedBadge status={s.status} feminine />
             </a>
           </li>
         ))}

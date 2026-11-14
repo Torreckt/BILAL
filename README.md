@@ -187,11 +187,13 @@ TEST_DATABASE_URL=postgres://.../mainstream_test npm run test:e2e   # القاع
 
 ```
 app/(site)/        الصفحات العامة: الرئيسية، services/[slug]، work، privacy
-app/admin/         لوحة الإدارة (login, mfa, والأقسام داخل (panel)) + actions.ts لكل العمليات
+app/admin/         لوحة الإدارة (login, mfa, والأقسام داخل (panel)) + actions/ (auth, requests, content, settings, users)
 app/api/           requests (استقبال النموذج)، events (عدّادات مجهولة)، health
 app/media/         تقديم الملفات المرفوعة
 components/        مكونات الواجهة (Hero, Nav, Footer, ContactForm, ServiceCards, Works ...)
-lib/               db, auth (الجلسات والصلاحيات), crypto, requests (التحقق والحفظ), notify, content, uploads
+lib/               db, auth (الجلسات والصلاحيات), rate-limit, audit, crypto, requests (التحقق والحفظ), notify, content, uploads
+lib/intents.ts     أنواع الطلبات وحالاتها      lib/dates.ts  تواريخ بتوقيت الرياض
+lib/admin/         استعلامات اللوحة (requests, users, content) — الصفحات والعمليات ما تكتب SQL مباشرة
 db/migrations/     ملفات SQL للجداول          db/seed-data.ts  المحتوى الأولي
 scripts/           migrate, seed, create-admin, retention, backup.sh, restore.sh
 proxy.ts           ترويسة CSP لكل طلب وحماية أولية لمسار /admin

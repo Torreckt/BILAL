@@ -1,4 +1,4 @@
-import type { ContactIntent } from "@/lib/site";
+import type { ContactIntent } from "@/lib/intents";
 
 type Props = {
   children: React.ReactNode;

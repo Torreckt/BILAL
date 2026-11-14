@@ -7,7 +7,7 @@ import { Contact } from "@/components/Contact";
 import { JsonLd } from "@/components/Prose";
 import { WorkCard } from "@/components/Works";
 import { getFaqs, getLinks, getServices, getWorks, wantsPreview, type Faq as FaqRow, type Service, type Work } from "@/lib/content";
-import { reasons, roles, sectors } from "@/lib/site";
+import { reasons, sectors, teamRoles } from "@/lib/site";
 
 function Stream() {
   const phrase = (
@@ -93,7 +93,7 @@ function OneSalary() {
           <figure className="ledger ledger--team">
             <figcaption className="ledger__head">فريق ماين ستريم</figcaption>
             <ul className="ledger__eyes">
-              {roles.map((r) => (
+              {teamRoles.map((r) => (
                 <li key={r}>
                   <Eye className="ledger__eye" />
                   <span>{r}</span>

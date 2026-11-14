@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requireUser, roleLabels } from "@/lib/auth";
-import { changePassword } from "../../actions";
+import { changePassword } from "../../actions/auth";
 import { Flash, type Search } from "../../ui";
 
 export const metadata: Metadata = { title: "حسابي" };

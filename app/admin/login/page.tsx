@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Eye } from "@/components/Eye";
 import { getSession } from "@/lib/auth";
-import { login } from "../actions";
+import { login } from "../actions/auth";
 import { Flash, type Search } from "../ui";
 
 export const metadata: Metadata = { title: "تسجيل الدخول" };

@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { REQUEST_ROLES, requireUser } from "@/lib/auth";
-import { sql } from "@/lib/db";
-import type { RequestRow } from "@/lib/requests";
-import { formatDay, intentLabel, statusLabels, statusesFor } from "@/lib/site";
-import { deleteRequest, retryNotify, updateRequest } from "../../../actions";
+import { serviceTitles } from "@/lib/admin/content";
+import { getRequest, requestNotes } from "@/lib/admin/requests";
+import { listRequestStaff } from "@/lib/admin/users";
+import { auditFor } from "@/lib/audit";
+import { isUuid } from "@/lib/validate";
+import { formatDay } from "@/lib/dates";
+import { intentLabel, statusLabels, statusesFor } from "@/lib/intents";
+import { deleteRequest, retryNotify, updateRequest } from "../../../actions/requests";
 import { Badge, Flash, statusTone, when, type Search } from "../../../ui";
 
 export const metadata: Metadata = { title: "تفاصيل الطلب" };
@@ -18,25 +22,17 @@ const actionText: Record<string, (m: Record<string, string>) => string> = {
 export default async function RequestPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Search }) {
   const user = await requireUser(...REQUEST_ROLES);
   const { id } = await params;
-  if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
-  const [r] = await sql<RequestRow[]>`select * from requests where id = ${id}`;
+  if (!isUuid(id)) notFound();
+  const r = await getRequest(id);
   if (!r) notFound();
-  const [notes, history, staff, services] = await Promise.all([
-    sql<{ id: string; body: string; created_at: Date; author: string | null }[]>`
-      select n.id, n.body, n.created_at, u.name as author from request_notes n left join users u on u.id = n.author_id
-      where n.request_id = ${id} order by n.created_at desc`,
-    sql<{ id: string; actor_name: string | null; action: string; meta: Record<string, string>; created_at: Date }[]>`
-      select id, actor_name, action, meta, created_at from audit_log where entity = 'request' and entity_id = ${id} order by created_at desc`,
-    sql<{ id: string; name: string }[]>`select id, name from users where role in ('owner', 'agent') and active order by name`,
-    sql<{ slug: string; title: string }[]>`select slug, title from services`,
-  ]);
+  const [notes, history, staff, services] = await Promise.all([requestNotes(id), auditFor("request", id), listRequestStaff(), serviceTitles()]);
   const facts: [string, React.ReactNode][] = [
     ["الاسم", r.name],
     ["الجوال", r.phone && <a href={`tel:${r.phone}`} dir="ltr">{r.phone}</a>],
     ["الإيميل", r.email && <a href={`mailto:${r.email}`} dir="ltr">{r.email}</a>],
     [r.type === "partner" ? "الجهة" : "النشاط", r.business],
     ["نوع النشاط", r.sector],
-    ["الخدمات", r.services.map((s) => services.find((x) => x.slug === s)?.title ?? s).join("، ")],
+    ["الخدمات", r.services.map(services.title).join("، ")],
     ["نوع الاجتماع", r.meeting_type],
     ["اليوم المفضل", r.meeting_day && formatDay(new Date(r.meeting_day).toISOString().slice(0, 10))],
     ["الفترة المفضلة", r.meeting_time],

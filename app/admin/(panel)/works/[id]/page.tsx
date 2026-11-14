@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { CONTENT_ROLES, requireUser } from "@/lib/auth";
-import { getServices, type Work } from "@/lib/content";
-import { sql } from "@/lib/db";
-import { deleteContent, saveWork } from "../../../actions";
-import { Badge, Flash, type Search } from "../../../ui";
+import { getWorkById } from "@/lib/admin/content";
+import { getServices } from "@/lib/content";
+import { isUuid } from "@/lib/validate";
+import { deleteContent, saveWork } from "../../../actions/content";
+import { PublishedBadge, Flash, type Search } from "../../../ui";
 
 export const metadata: Metadata = { title: "تعديل عمل" };
 
@@ -13,8 +14,8 @@ export default async function EditWork({ params, searchParams }: { params: Promi
   await requireUser(...CONTENT_ROLES);
   const { id } = await params;
   const isNew = id === "new";
-  if (!isNew && !/^[0-9a-f-]{36}$/.test(id)) notFound();
-  const [w] = isNew ? [undefined] : await sql<Work[]>`select * from works where id = ${id}`;
+  if (!isNew && !isUuid(id)) notFound();
+  const w = isNew ? undefined : await getWorkById(id);
   if (!isNew && !w) notFound();
   const services = await getServices(true);
   return (
@@ -25,7 +26,7 @@ export default async function EditWork({ params, searchParams }: { params: Promi
       <div className="adm-head">
         <h1 className="adm-title">
           {w?.title ?? "عمل جديد"}{" "}
-          {w && <Badge tone={w.status === "published" ? "green" : "paper"}>{w.status === "published" ? "منشور" : "مسودة"}</Badge>}
+          {w && <PublishedBadge status={w.status} />}
         </h1>
         {w && (
           <a className="adm-btn" href={`/work/${w.slug}?preview=1`} target="_blank" rel="noopener">

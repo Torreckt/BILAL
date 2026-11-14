@@ -12,7 +12,8 @@ export const whatsappLink = (number: string, message: string) =>
 
 export const DEFAULT_MESSAGE = "هلا ماين ستريم، أبغى أحجز اجتماع.";
 
-export const roles = [
+// Team specialties shown in the hero and the team section (not dashboard permission roles; see lib/auth.ts).
+export const teamRoles = [
   "مدير حملات",
   "مصمم",
   "كاتب محتوى",
@@ -55,50 +56,3 @@ export const sectors = [
   "تعليم وتدريب",
   "فعاليات ومعارض",
 ];
-
-export type ContactIntent = "meeting" | "quote" | "inquiry" | "partner";
-
-// `label` is what the visitor presses; `noun` names the request in the dashboard, emails and WhatsApp.
-export const contactIntents: { id: ContactIntent; label: string; noun: string; emoji: string }[] = [
-  { id: "meeting", label: "اطلب اجتماع", noun: "طلب اجتماع", emoji: "📅" },
-  { id: "quote", label: "اطلب عرض سعر", noun: "طلب عرض سعر", emoji: "🧾" },
-  { id: "inquiry", label: "استفسار", noun: "استفسار", emoji: "💬" },
-  { id: "partner", label: "تعاون وشراكة", noun: "طلب تعاون وشراكة", emoji: "🤝" },
-];
-export const intentLabel = (t: string) => contactIntents.find((c) => c.id === t)?.noun ?? t;
-
-export const meetingTypes = ["اجتماع أونلاين", "اجتماع حضوري", "مكالمة هاتفية"];
-export const meetingTimes = ["الصباح", "الظهر", "العصر", "المساء"];
-
-export const statusLabels: Record<string, string> = {
-  new: "جديد",
-  in_progress: "قيد المتابعة",
-  meeting_confirmed: "تم تأكيد الاجتماع",
-  quote_sent: "تم إرسال العرض",
-  answered: "تم الرد",
-  closed: "مغلق",
-};
-const extraStatus: Partial<Record<ContactIntent, string>> = {
-  meeting: "meeting_confirmed",
-  quote: "quote_sent",
-  inquiry: "answered",
-};
-/** Statuses that make sense for a request type, in workflow order. */
-export const statusesFor = (type: ContactIntent) => [
-  "new",
-  "in_progress",
-  ...(extraStatus[type] ? [extraStatus[type]!] : []),
-  "closed",
-];
-
-/** Today's date in Riyadh as YYYY-MM-DD (the site's business timezone). */
-export const riyadhToday = (offsetDays = 0) =>
-  new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Riyadh" }).format(Date.now() + offsetDays * 864e5);
-
-export const formatDay = (ymd: string) =>
-  new Date(`${ymd}T12:00:00+03:00`).toLocaleDateString("ar-SA-u-ca-gregory-nu-latn", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    timeZone: "Asia/Riyadh",
-  });

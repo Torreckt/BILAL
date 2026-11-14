@@ -2,7 +2,8 @@ import nodemailer from "nodemailer";
 import { sql } from "./db";
 import { env } from "./env";
 import { getSetting } from "./content";
-import { formatDay, intentLabel } from "./site";
+import { formatDay } from "./dates";
+import { intentLabel } from "./intents";
 import type { RequestRow } from "./requests";
 
 /** Emails the team about a saved request and records the outcome on the row. Never throws. */

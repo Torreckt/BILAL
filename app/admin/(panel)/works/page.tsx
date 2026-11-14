@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { CONTENT_ROLES, requireUser } from "@/lib/auth";
 import { getWorks } from "@/lib/content";
-import { Badge, Flash, type Search } from "../../ui";
+import { PublishedBadge, Flash, type Search } from "../../ui";
 
 export const metadata: Metadata = { title: "الأعمال" };
 
@@ -24,7 +24,7 @@ export default async function Works({ searchParams }: { searchParams: Search }) 
                 <span className="adm-tiles__shot">{w.cover && <Image src={w.cover} alt="" fill sizes="240px" />}</span>
                 <strong>{w.title}</strong>
                 <span className="adm-muted">{w.category}</span>
-                <Badge tone={w.status === "published" ? "green" : "paper"}>{w.status === "published" ? "منشور" : "مسودة"}</Badge>
+                <PublishedBadge status={w.status} />
               </a>
             </li>
           ))}

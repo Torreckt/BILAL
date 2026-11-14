@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { SESSION_COOKIES } from "./lib/session-cookie";
 
 // Runs before every page: issues the Content-Security-Policy with a per-request nonce, keeps the dashboard out of
 // search results, and bounces signed-out visitors away from /admin early. The real permission checks run again on
@@ -6,7 +7,7 @@ import { NextResponse, type NextRequest } from "next/server";
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const admin = pathname.startsWith("/admin");
-  const signedIn = req.cookies.has("__Host-ms_session") || req.cookies.has("ms_session");
+  const signedIn = SESSION_COOKIES.some((name) => req.cookies.has(name));
   if (admin && !signedIn && pathname !== "/admin/login") {
     return NextResponse.redirect(new URL("/admin/login", req.url));
   }

@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CONTENT_ROLES, requireUser } from "@/lib/auth";
-import { sql } from "@/lib/db";
-import type { Service } from "@/lib/content";
-import { deleteContent, saveService } from "../../../actions";
-import { Badge, Flash, type Search } from "../../../ui";
+import { getServiceById } from "@/lib/admin/content";
+import { isUuid } from "@/lib/validate";
+import { deleteContent, saveService } from "../../../actions/content";
+import { PublishedBadge, Flash, type Search } from "../../../ui";
 
 export const metadata: Metadata = { title: "تعديل خدمة" };
 
@@ -12,8 +12,8 @@ export default async function EditService({ params, searchParams }: { params: Pr
   await requireUser(...CONTENT_ROLES);
   const { id } = await params;
   const isNew = id === "new";
-  if (!isNew && !/^[0-9a-f-]{36}$/.test(id)) notFound();
-  const [s] = isNew ? [undefined] : await sql<Service[]>`select * from services where id = ${id}`;
+  if (!isNew && !isUuid(id)) notFound();
+  const s = isNew ? undefined : await getServiceById(id);
   if (!isNew && !s) notFound();
   return (
     <>
@@ -23,7 +23,7 @@ export default async function EditService({ params, searchParams }: { params: Pr
       <div className="adm-head">
         <h1 className="adm-title">
           {s?.title ?? "خدمة جديدة"}{" "}
-          {s && <Badge tone={s.status === "published" ? "green" : "paper"}>{s.status === "published" ? "منشورة" : "مسودة"}</Badge>}
+          {s && <PublishedBadge status={s.status} feminine />}
         </h1>
         {s && (
           <a className="adm-btn" href={`/services/${s.slug}?preview=1`} target="_blank" rel="noopener">

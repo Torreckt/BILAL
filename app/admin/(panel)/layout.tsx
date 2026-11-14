@@ -1,7 +1,7 @@
 import { Eye } from "@/components/Eye";
 import { CONTENT_ROLES, REQUEST_ROLES, requireUser, roleLabels, type Role } from "@/lib/auth";
-import { sql } from "@/lib/db";
-import { logout } from "../actions";
+import { countNewRequests } from "@/lib/admin/requests";
+import { logout } from "../actions/auth";
 import { Menu } from "../Menu";
 
 const menu: { href: string; label: string; roles: Role[] }[] = [
@@ -18,9 +18,7 @@ const menu: { href: string; label: string; roles: Role[] }[] = [
 
 export default async function Panel({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
-  const [{ n }] = REQUEST_ROLES.includes(user.role)
-    ? await sql<{ n: number }[]>`select count(*)::int as n from requests where status = 'new'`
-    : [{ n: 0 }];
+  const n = REQUEST_ROLES.includes(user.role) ? await countNewRequests() : 0;
   return (
     <div className="adm-shell">
       <a className="skip" href="#adm-main">
