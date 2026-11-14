@@ -78,11 +78,11 @@ export function Hero() {
           فريقك التسويقي المتكامل
         </h1>
         <p className="hero__lede">
-          تسعة متخصصين يشتغلون على نشاطك من الرياض: تسويق، محتوى، تصوير، مونتاج، مواقع، وهوية.{" "}
+          تسعة متخصصين يشتغلون على نشاطك: تسويق، محتوى، تصوير، مونتاج، مواقع، وهوية.{" "}
           <strong>نصنع الضجة.. وأنت تملك الأضواء.</strong>
         </p>
         <div className="hero__actions">
-          <ContactButton size="lg">احجز اجتماعك</ContactButton>
+          <ContactButton size="lg">اطلب اجتماعك</ContactButton>
           <a className="text-link" href="#services">
             شوف خدماتنا
           </a>

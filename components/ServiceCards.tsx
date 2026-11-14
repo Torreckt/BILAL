@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { caseFiles } from "@/lib/site";
 
 // One line icon per service, keyed by case file id.
 const icons: Record<string, React.ReactNode> = {
@@ -67,7 +66,24 @@ const icons: Record<string, React.ReactNode> = {
   ),
 };
 
-export function ServiceCards() {
+const fallbackIcon = (
+  <g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round">
+    <circle cx="12" cy="12" r="8.5" />
+    <path d="M12 7.5v9M7.5 12h9" />
+  </g>
+);
+
+export function ServiceIcon({ slug, className }: { slug: string; className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      {icons[slug] ?? fallbackIcon}
+    </svg>
+  );
+}
+
+type Card = { slug: string; title: string; line: string; items: string[] };
+
+export function ServiceCards({ services }: { services: Card[] }) {
   const listRef = useRef<HTMLUListElement>(null);
   const [lit, setLit] = useState<number | null>(null);
 
@@ -87,18 +103,24 @@ export function ServiceCards() {
 
   return (
     <ul ref={listRef} className={`svc-grid ${lit !== null ? "has-lit" : ""}`}>
-      {caseFiles.map((f, i) => (
-        <li key={f.id} className={`svc ${lit === i ? "is-lit" : ""}`} tabIndex={0}>
-          <svg className="svc__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            {icons[f.id]}
-          </svg>
-          <h3 className="svc__title">{f.title}</h3>
+      {services.map((f, i) => (
+        <li key={f.slug} className={`svc ${lit === i ? "is-lit" : ""}`}>
+          <ServiceIcon slug={f.slug} className="svc__icon" />
+          <h3 className="svc__title">
+            {/* The link stretches over the whole card. */}
+            <a className="svc__link" href={`/services/${f.slug}`}>
+              {f.title}
+            </a>
+          </h3>
           <p className="svc__line">{f.line}</p>
           <ul className="svc__items">
             {f.items.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
+          <span className="svc__more" aria-hidden="true">
+            <span>تفاصيل الخدمة</span> ←
+          </span>
         </li>
       ))}
     </ul>

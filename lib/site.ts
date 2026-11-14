@@ -1,11 +1,14 @@
-// Contact details — replace the placeholders before going live.
-export const WHATSAPP_NUMBER = "966594357444"; // 0594357444 بالصيغة الدولية بدون +
-export const INSTAGRAM_HANDLE = "sa.mainstream";
-export const TIKTOK_HANDLE = "sa.mainstream";
+// Fallback contact details; the live values are edited from the dashboard (settings → links).
+export const defaultLinks = {
+  whatsapp: "966594357444", // 0594357444 بالصيغة الدولية بدون +
+  instagram: "sa.mainstream",
+  tiktok: "sa.mainstream",
+  email: "Info@imainstream.net",
+};
+export type Links = typeof defaultLinks;
 
-export function whatsappLink(message: string) {
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-}
+export const whatsappLink = (number: string, message: string) =>
+  `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
 
 export const DEFAULT_MESSAGE = "هلا ماين ستريم، أبغى أحجز اجتماع.";
 
@@ -21,132 +24,7 @@ export const roles = [
   "استراتيجي",
 ] as const;
 
-export type CaseFile = {
-  id: string;
-  code: string;
-  title: string;
-  line: string;
-  items: string[];
-};
-
-// TODO: راجع وصف كل خدمة وقائمتها قبل النشر.
-export const caseFiles: CaseFile[] = [
-  {
-    id: "marketing",
-    code: "MARKETING",
-    title: "التسويق والحملات الإعلانية",
-    line: "كل ريال إعلاني له هدف ورقم يُقاس.",
-    items: [
-      "استراتيجية تسويق وخطة شهرية",
-      "حملات مدفوعة على إنستغرام وتيك توك وسناب",
-      "استهداف وتحسين مستمر للميزانية",
-      "تقرير أداء شهري بالأرقام",
-    ],
-  },
-  {
-    id: "social",
-    code: "SOCIAL",
-    title: "إدارة السوشال ميديا",
-    line: "حساباتك تشتغل كل يوم، وأنت مرتاح.",
-    items: [
-      "إدارة الحسابات والنشر والجدولة",
-      "الرد على التعليقات والرسائل",
-      "متابعة الترندات وأفكار المحتوى",
-      "تحليل أداء الحسابات",
-    ],
-  },
-  {
-    id: "content",
-    code: "CONTENT",
-    title: "كتابة المحتوى",
-    line: "كلام يشبهك، ويبيع عنك.",
-    items: [
-      "كتابة الكابشن والمنشورات",
-      "سكربتات الريلز والإعلانات",
-      "محتوى المواقع والصفحات",
-      "صياغة رسائل البراند",
-    ],
-  },
-  {
-    id: "photo",
-    code: "PHOTO",
-    title: "التصوير",
-    line: "صورة تخلي الناس توقف وتطالع.",
-    items: [
-      "تصوير المنتجات والأطباق",
-      "تصوير فيديو وريلز",
-      "تصوير المكان والفريق",
-      "جلسات تصوير للحملات",
-    ],
-  },
-  {
-    id: "video",
-    code: "EDIT",
-    title: "المونتاج والموشن",
-    line: "مقاطع بإيقاع المنصة، ما تنتخطى.",
-    items: [
-      "مونتاج الريلز والتيك توك",
-      "موشن جرافيك",
-      "فيديوهات إعلانية",
-      "ترجمة ونصوص على الفيديو",
-    ],
-  },
-  {
-    id: "web",
-    code: "WEB",
-    title: "تصميم المواقع",
-    line: "موقعك فرعك اللي ما يقفل.",
-    items: [
-      "تصميم وبرمجة المواقع",
-      "المتاجر الإلكترونية",
-      "صفحات هبوط للحملات",
-      "مواقع متجاوبة مع الجوال",
-    ],
-  },
-  {
-    id: "identity",
-    code: "BRAND",
-    title: "الهوية البصرية والتصميم",
-    line: "من الشعار إلى الكيس، كل شي يحكي قصتك.",
-    items: [
-      "تصميم الشعار والهوية",
-      "التغليف والمطبوعات",
-      "تصميم المنيو",
-      "تصاميم السوشال ميديا",
-    ],
-  },
-  {
-    id: "influence",
-    code: "HYPE",
-    title: "المؤثرين والسمعة",
-    line: "الناس تتكلم عنك، بالطريقة الصح.",
-    items: [
-      "تعاون مع المؤثرين",
-      "إدارة تقييمات قوقل ماب",
-      "عروض وفعاليات موسمية",
-      "أفكار إبداعية تعزّز شهرتك",
-    ],
-  },
-  {
-    id: "training",
-    code: "TRAINING",
-    title: "تدريب الكوفيهات",
-    line: "فريقك جاهز قبل ما يوصل العميل.",
-    items: [
-      "تدريب الباريستا مع المدرب بلال",
-      "سلامة الغذاء والجاهزية للبلدية",
-      "تجربة العميل داخل المحل",
-      "متابعة الأداء ومؤشرات KPIs",
-    ],
-  },
-];
-
-// TODO: راجع النقاط قبل النشر.
 export const reasons = [
-  {
-    title: "فريق كامل، مو شخص واحد",
-    text: "تسعة متخصصين يشتغلون على نشاطك، كل واحد في شغلته، بدل ما يكون كل الحمل على شخص واحد.",
-  },
   {
     title: "أرقام واضحة كل شهر",
     text: "تقرير أداء شهري: وش نشرنا، وش صرفنا، ووش صار بالأرقام.",
@@ -173,43 +51,49 @@ export const sectors = [
   "فعاليات ومعارض",
 ];
 
-// TODO: راجع الأسئلة والأجوبة قبل النشر.
-export const faqs = [
-  {
-    q: "تشتغلون مع أي نوع نشاط؟",
-    a: "مع أي نشاط يبي يكبر: كوفيهات ومطاعم، متاجر، عيادات، شركات وغيرها. ونبني الفريق والخطة على حجم نشاطك واحتياجه.",
-  },
-  {
-    q: "لازم أشترك بكل الخدمات؟",
-    a: "لا. تقدر تبدأ بخدمة وحدة مثل التصوير أو إدارة الحسابات، أو تاخذ الفريق كامل. أنت تختار اللي تحتاجه.",
-  },
-  {
-    q: "كم تكلف الخدمة؟",
-    a: "السعر يعتمد على الخدمات اللي تحتاجها وحجم الشغل. نجلس معك أول، نفهم نشاطك، وبعدها نرسل لك عرض سعر واضح.",
-  },
-  {
-    q: "متى أشوف النتائج؟",
-    a: "يعتمد على نشاطك وهدفك. نحدد معك من البداية أهداف واضحة، ونرسل لك تقرير أداء كل شهر تشوف فيه وين وصلنا بالأرقام.",
-  },
-  {
-    q: "عندكم تدريب للكوفيهات؟",
-    a: "إيه. تدريب باريستا مع المدرب بلال، وتدريب على سلامة الغذاء والجاهزية لزيارات البلدية، وتجربة العميل داخل المحل.",
-  },
-  {
-    q: "كيف أبدأ؟",
-    a: "راسلنا على واتساب أو عبّ نموذج طلب عرض السعر، ونحدد معك موعد اجتماع يناسبك.",
-  },
-];
-
 export type ContactIntent = "meeting" | "quote" | "inquiry" | "partner";
 
-// Request types in the contact form, with the title and opening line of the WhatsApp message each one sends.
-export const contactIntents: { id: ContactIntent; label: string; title: string; opener: string }[] = [
-  { id: "meeting", label: "احجز اجتماع", title: "📅 *طلب حجز اجتماع*", opener: "أبغى أحجز اجتماع مع فريقكم." },
-  { id: "quote", label: "اطلب عرض سعر", title: "🧾 *طلب عرض سعر*", opener: "أبغى عرض سعر للخدمات التالية." },
-  { id: "inquiry", label: "استفسار", title: "💬 *استفسار*", opener: "عندي استفسار." },
-  { id: "partner", label: "تعاون وشراكة", title: "🤝 *طلب تعاون وشراكة*", opener: "عندي فكرة تعاون أو شراكة." },
+// `label` is the tab the visitor presses; `noun` names the request in the dashboard, emails and WhatsApp.
+export const contactIntents: { id: ContactIntent; label: string; noun: string; emoji: string }[] = [
+  { id: "meeting", label: "اجتماع", noun: "طلب اجتماع", emoji: "📅" },
+  { id: "quote", label: "عرض سعر", noun: "طلب عرض سعر", emoji: "🧾" },
+  { id: "inquiry", label: "استفسار", noun: "استفسار", emoji: "💬" },
+  { id: "partner", label: "تعاون", noun: "طلب تعاون وشراكة", emoji: "🤝" },
+];
+export const intentLabel = (t: string) => contactIntents.find((c) => c.id === t)?.noun ?? t;
+
+export const meetingTypes = ["اجتماع أونلاين", "مكالمة هاتفية"];
+export const meetingTimes = ["الصباح", "الظهر", "العصر", "المساء"];
+
+export const statusLabels: Record<string, string> = {
+  new: "جديد",
+  in_progress: "قيد المتابعة",
+  meeting_confirmed: "تم تأكيد الاجتماع",
+  quote_sent: "تم إرسال العرض",
+  answered: "تم الرد",
+  closed: "مغلق",
+};
+const extraStatus: Partial<Record<ContactIntent, string>> = {
+  meeting: "meeting_confirmed",
+  quote: "quote_sent",
+  inquiry: "answered",
+};
+/** Statuses that make sense for a request type, in workflow order. */
+export const statusesFor = (type: ContactIntent) => [
+  "new",
+  "in_progress",
+  ...(extraStatus[type] ? [extraStatus[type]!] : []),
+  "closed",
 ];
 
-export const meetingTypes = ["اجتماع أونلاين", "اجتماع حضوري", "مكالمة هاتفية"];
-export const meetingTimes = ["الصباح", "الظهر", "العصر", "المساء"];
+/** Today's date in Riyadh as YYYY-MM-DD (the site's business timezone). */
+export const riyadhToday = (offsetDays = 0) =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Riyadh" }).format(Date.now() + offsetDays * 864e5);
+
+export const formatDay = (ymd: string) =>
+  new Date(`${ymd}T12:00:00+03:00`).toLocaleDateString("ar-SA-u-ca-gregory-nu-latn", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    timeZone: "Asia/Riyadh",
+  });
