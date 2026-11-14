@@ -31,6 +31,30 @@ export function WorkCard({ work, preview = false, priority = false }: { work: Wo
 }
 
 /** One image or video at its own proportions. Videos load only when the visitor presses play. */
+/** "More from our work" strip under a service or a work page; renders nothing when the list is empty. */
+export function RelatedWorks({ id, title, works, preview }: { id: string; title: string; works: Work[]; preview: boolean }) {
+  if (!works.length) return null;
+  return (
+    <section className="section watchlist" aria-labelledby={id}>
+      <div className="wrap">
+        <div className="watchlist__head">
+          <h2 id={id} className="display display--md">
+            {title}
+          </h2>
+          <a className="text-link" href="/work">
+            كل الأعمال
+          </a>
+        </div>
+        <ul className="works">
+          {works.map((w) => (
+            <WorkCard key={w.id} work={w} preview={preview} />
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
 export function WorkMedia({ item, priority = false }: { item: MediaItem; priority?: boolean }) {
   const portrait = item.h > item.w;
   // The first video's poster is the biggest thing on screen: fetch it early instead of waiting for the player.

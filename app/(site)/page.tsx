@@ -4,7 +4,7 @@ import { EyeTracker } from "@/components/EyeTracker";
 import { Eye, Wave } from "@/components/Eye";
 import { ContactButton } from "@/components/ContactButton";
 import { Contact } from "@/components/Contact";
-import { JsonLd } from "@/components/Prose";
+import { JsonLd } from "@/components/JsonLd";
 import { WorkCard } from "@/components/Works";
 import { getFaqs, getLinks, getServices, getWorks, wantsPreview, type Faq as FaqRow, type Service, type Work } from "@/lib/content";
 import { reasons, sectors, teamRoles } from "@/lib/site";
@@ -280,7 +280,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
       {faqs.length > 0 && (
         <JsonLd
           data={{
-            "@context": "https://schema.org",
             "@type": "FAQPage",
             mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.question, acceptedAnswer: { "@type": "Answer", text: f.answer } })),
           }}

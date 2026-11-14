@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Contact } from "@/components/Contact";
 import { ContactButton } from "@/components/ContactButton";
-import { JsonLd, Prose } from "@/components/Prose";
+import { JsonLd, breadcrumbs, orgRef } from "@/components/JsonLd";
+import { Prose } from "@/components/Prose";
 import { ServiceIcon } from "@/components/ServiceCards";
-import { WorkCard } from "@/components/Works";
+import { RelatedWorks } from "@/components/Works";
 import { getLinks, getService, getServices, getWorks, wantsPreview } from "@/lib/content";
 import { env } from "@/lib/env";
 
@@ -71,25 +72,7 @@ export default async function ServicePage({ params, searchParams }: Props) {
         </div>
       </section>
 
-      {related.length > 0 && (
-        <section className="section watchlist" aria-labelledby="related-title">
-          <div className="wrap">
-            <div className="watchlist__head">
-              <h2 id="related-title" className="display display--md">
-                من شغلنا
-              </h2>
-              <a className="text-link" href="/work">
-                كل الأعمال
-              </a>
-            </div>
-            <ul className="works">
-              {related.map((w) => (
-                <WorkCard key={w.id} work={w} preview={preview} />
-              ))}
-            </ul>
-          </div>
-        </section>
-      )}
+      <RelatedWorks id="related-title" title="من شغلنا" works={related} preview={preview} />
 
       <Contact
         links={links}
@@ -117,7 +100,6 @@ export default async function ServicePage({ params, searchParams }: Props) {
 
       <JsonLd
         data={{
-          "@context": "https://schema.org",
           "@graph": [
             {
               "@type": "Service",
@@ -125,15 +107,9 @@ export default async function ServicePage({ params, searchParams }: Props) {
               description: service.seo_description || service.summary,
               url,
               areaServed: "SA",
-              provider: { "@id": `${env.siteUrl}/#org` },
+              provider: orgRef(),
             },
-            {
-              "@type": "BreadcrumbList",
-              itemListElement: [
-                { "@type": "ListItem", position: 1, name: "الرئيسية", item: env.siteUrl },
-                { "@type": "ListItem", position: 2, name: service.title, item: url },
-              ],
-            },
+            breadcrumbs([{ name: service.title, url }]),
           ],
         }}
       />

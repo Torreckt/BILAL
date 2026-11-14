@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { notFound } from "next/navigation";
 import { CONTENT_ROLES, requireUser } from "@/lib/auth";
 import { getWorkById } from "@/lib/admin/content";
 import { getServices } from "@/lib/content";
-import { isUuid } from "@/lib/validate";
+import { loadEditable } from "../../../editable";
 import { deleteContent, saveWork } from "../../../actions/content";
 import { PublishedBadge, Flash, type Search } from "../../../ui";
 
@@ -12,11 +11,7 @@ export const metadata: Metadata = { title: "تعديل عمل" };
 
 export default async function EditWork({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Search }) {
   await requireUser(...CONTENT_ROLES);
-  const { id } = await params;
-  const isNew = id === "new";
-  if (!isNew && !isUuid(id)) notFound();
-  const w = isNew ? undefined : await getWorkById(id);
-  if (!isNew && !w) notFound();
+  const w = await loadEditable((await params).id, getWorkById);
   const services = await getServices(true);
   return (
     <>

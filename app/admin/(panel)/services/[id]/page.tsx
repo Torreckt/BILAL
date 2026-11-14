@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { CONTENT_ROLES, requireUser } from "@/lib/auth";
 import { getServiceById } from "@/lib/admin/content";
-import { isUuid } from "@/lib/validate";
+import { loadEditable } from "../../../editable";
 import { deleteContent, saveService } from "../../../actions/content";
 import { PublishedBadge, Flash, type Search } from "../../../ui";
 
@@ -10,11 +9,7 @@ export const metadata: Metadata = { title: "تعديل خدمة" };
 
 export default async function EditService({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Search }) {
   await requireUser(...CONTENT_ROLES);
-  const { id } = await params;
-  const isNew = id === "new";
-  if (!isNew && !isUuid(id)) notFound();
-  const s = isNew ? undefined : await getServiceById(id);
-  if (!isNew && !s) notFound();
+  const s = await loadEditable((await params).id, getServiceById);
   return (
     <>
       <p className="adm-crumb">

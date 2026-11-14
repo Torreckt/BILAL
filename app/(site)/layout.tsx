@@ -1,6 +1,6 @@
 import { Footer } from "@/components/Footer";
 import { Nav } from "@/components/Nav";
-import { JsonLd } from "@/components/Prose";
+import { JsonLd } from "@/components/JsonLd";
 import { getLinks, getServices } from "@/lib/content";
 import { env } from "@/lib/env";
 
@@ -16,7 +16,6 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <Footer links={links} services={services.map(({ slug, title }) => ({ slug, title }))} />
       <JsonLd
         data={{
-          "@context": "https://schema.org",
           "@type": "ProfessionalService",
           "@id": `${env.siteUrl}/#org`,
           name: "ماين ستريم Mainstream",

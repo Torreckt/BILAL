@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Contact } from "@/components/Contact";
-import { JsonLd, Prose } from "@/components/Prose";
-import { WorkCard, WorkMedia } from "@/components/Works";
+import { JsonLd, breadcrumbs, orgRef } from "@/components/JsonLd";
+import { Prose } from "@/components/Prose";
+import { RelatedWorks, WorkMedia } from "@/components/Works";
 import { getLinks, getService, getServices, getWork, getWorks, wantsPreview } from "@/lib/content";
 import { env } from "@/lib/env";
 
@@ -80,25 +81,7 @@ export default async function WorkPage({ params, searchParams }: Props) {
         </section>
       </article>
 
-      {others.length > 0 && (
-        <section className="section watchlist" aria-labelledby="others-title">
-          <div className="wrap">
-            <div className="watchlist__head">
-              <h2 id="others-title" className="display display--md">
-                ملفات ثانية
-              </h2>
-              <a className="text-link" href="/work">
-                كل الأعمال
-              </a>
-            </div>
-            <ul className="works">
-              {others.map((w) => (
-                <WorkCard key={w.id} work={w} preview={preview} />
-              ))}
-            </ul>
-          </div>
-        </section>
-      )}
+      <RelatedWorks id="others-title" title="ملفات ثانية" works={others} preview={preview} />
 
       <Contact
         links={links}
@@ -111,7 +94,6 @@ export default async function WorkPage({ params, searchParams }: Props) {
 
       <JsonLd
         data={{
-          "@context": "https://schema.org",
           "@graph": [
             {
               "@type": "CreativeWork",
@@ -119,16 +101,12 @@ export default async function WorkPage({ params, searchParams }: Props) {
               description: work.summary,
               url,
               image: work.cover ? env.siteUrl + work.cover : undefined,
-              creator: { "@id": `${env.siteUrl}/#org` },
+              creator: orgRef(),
             },
-            {
-              "@type": "BreadcrumbList",
-              itemListElement: [
-                { "@type": "ListItem", position: 1, name: "الرئيسية", item: env.siteUrl },
-                { "@type": "ListItem", position: 2, name: "أعمالنا", item: `${env.siteUrl}/work` },
-                { "@type": "ListItem", position: 3, name: work.title, item: url },
-              ],
-            },
+            breadcrumbs([
+              { name: "أعمالنا", url: `${env.siteUrl}/work` },
+              { name: work.title, url },
+            ]),
           ],
         }}
       />

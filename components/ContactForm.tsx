@@ -26,31 +26,36 @@ const pageSource = () => {
   return location.pathname + (utm ? `?utm_source=${utm.slice(0, 60)}` : "");
 };
 
-// One form for every way in: a meeting, a quote, a question or a partnership.
-// The request is saved on the server first; WhatsApp is an optional follow-up carrying the reference number.
-export function ContactForm({ services, whatsapp, initialIntent = "meeting", initialService }: Props) {
-  const [intent, setIntent] = useState<ContactIntent>(initialIntent);
-  const [picked, setPicked] = useState<string[]>(initialService ? [initialService] : []);
-  const [errors, setErrors] = useState<Errors>({});
-  const [state, setState] = useState<"idle" | "sending" | "failed">("idle");
-  const [sent, setSent] = useState<Sent | null>(null);
-  const formRef = useRef<HTMLFormElement>(null);
-  const doneRef = useRef<HTMLDivElement>(null);
-  // One key per filled form: a double click or a retry after a dropped connection reuses it, so only one request is stored.
-  const idem = useRef("");
-  const openedAt = useRef(0);
-  useEffect(() => {
-    openedAt.current = Date.now();
-  }, []);
+type RequestPayload = Record<string, unknown> & { day: string; name: string; source: string };
+type SubmitResult = { kind: "saved"; ref: string } | { kind: "invalid"; errors: Errors } | { kind: "failed"; error: string };
 
-  // Buttons elsewhere link to #contact-<intent>: pick that request type (on click, and on arrival from another page).
+/** Sends the request to the server and sorts the answer into saved / needs fixing / failed. */
+async function postRequest(payload: RequestPayload): Promise<SubmitResult> {
+  try {
+    const res = await fetch("/api/requests", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.ref) return { kind: "saved", ref: data.ref };
+    if (res.status === 422 && data.errors) return { kind: "invalid", errors: data.errors };
+    return { kind: "failed", error: data.error ?? "صار خطأ من عندنا. جرّب مرة ثانية." };
+  } catch {
+    return { kind: "failed", error: "انقطع الاتصال قبل ما يوصل طلبك. تأكد من النت واضغط إرسال مرة ثانية، وما راح يتكرر الطلب." };
+  }
+}
+
+/** Buttons elsewhere link to #contact-<intent>: report that request type (on click, and on arrival from another page). */
+function useLinkedIntent(onPick: (intent: ContactIntent) => void) {
+  const pickRef = useRef(onPick);
+  useEffect(() => {
+    pickRef.current = onPick;
+  });
   useEffect(() => {
     const pick = (hash: string) => {
       const m = hash.match(/#contact-(\w+)$/);
-      if (!m || !isIntent(m[1])) return;
-      setIntent(m[1]);
-      setErrors({});
-      setSent(null);
+      if (m && isIntent(m[1])) pickRef.current(m[1]);
     };
     const onClick = (e: MouseEvent) => {
       const a = (e.target as Element | null)?.closest?.('a[href*="#contact-"]');
@@ -60,10 +65,91 @@ export function ContactForm({ services, whatsapp, initialIntent = "meeting", ini
     document.addEventListener("click", onClick);
     return () => document.removeEventListener("click", onClick);
   }, []);
+}
 
+/** The WhatsApp text a visitor can send after saving: the reference number plus what they asked for. */
+function followUpMessage(sent: Sent, serviceTitle: (slug: string) => string) {
+  const titles = sent.services.map(serviceTitle);
+  return [
+    `${contactIntents.find((c) => c.id === sent.type)!.emoji} *${intentLabel(sent.type)}*`,
+    `الرقم المرجعي: *${sent.ref}*`,
+    "",
+    `هلا ماين ستريم 👋 أنا ${sent.name}، أرسلت طلب من الموقع وأبغى أتابعه.`,
+    ...(titles.length ? ["", "*الخدمات المطلوبة*", ...titles.map((t, i) => `${i + 1}. ${t}`)] : []),
+    ...(sent.day ? ["", `اليوم المفضل: ${formatDay(sent.day)}`] : []),
+  ].join("\n");
+}
+
+/** Confirmation shown in place of the form once the request is saved. Takes focus so screen readers announce it. */
+function SentCard({ sent, services, whatsapp, onAgain }: { sent: Sent; services: Props["services"]; whatsapp: string; onAgain: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => ref.current?.focus(), []);
+  const msg = followUpMessage(sent, (slug) => services.find((x) => x.slug === slug)?.title ?? slug);
+  const onWhatsApp = () => {
+    const data = { type: sent.type, service: sent.services.join(","), source: pageSource() };
+    track("whatsapp_click", { request_type: data.type, service: data.service, source: data.source });
+    navigator.sendBeacon?.("/api/events", new Blob([JSON.stringify({ name: "whatsapp_click", ...data })], { type: "application/json" }));
+  };
+  return (
+    <div className="sent" ref={ref} tabIndex={-1} role="status">
+      <p className="sent__stamp">وصلنا طلبك</p>
+      <p className="sent__ref">
+        رقمك المرجعي
+        <strong dir="ltr">{sent.ref}</strong>
+      </p>
+      <p className="sent__text">
+        {sent.type === "meeting"
+          ? "بيتواصل معك الفريق لتأكيد موعد الاجتماع. الموعد ما يعتبر مؤكد إلا بعد تواصلنا معك."
+          : "حفظنا طلبك وبيتواصل معك الفريق قريب. احتفظ بالرقم المرجعي للمتابعة."}
+      </p>
+      <div className="sent__actions">
+        <a
+          className="ribbon-btn ribbon-btn--red ribbon-btn--md"
+          href={whatsappLink(whatsapp, msg)}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={onWhatsApp}
+        >
+          <Icon className="ribbon-btn__icon">{social.whatsapp}</Icon>
+          <span>تابع طلبك على واتساب</span>
+        </a>
+        <button type="button" className="text-link sent__again" onClick={onAgain}>
+          أرسل طلب ثاني
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// The message box changes its label and example with the request type.
+const MESSAGE_FIELD: Record<ContactIntent, { label: string; placeholder: string }> = {
+  meeting: { label: "تفاصيل إضافية", placeholder: "مثلاً: عندنا افتتاح فرع جديد الشهر الجاي" },
+  quote: { label: "وصف الاحتياج", placeholder: "وش تحتاج بالضبط؟ مثلاً: إدارة حسابين وتصوير شهري" },
+  inquiry: { label: "سؤالك", placeholder: "اكتب سؤالك" },
+  partner: { label: "مقترح التعاون", placeholder: "عرّفنا على فكرتك وكيف نتعاون" },
+};
+
+// One form for every way in: a meeting, a quote, a question or a partnership.
+// The request is saved on the server first; WhatsApp is an optional follow-up carrying the reference number.
+export function ContactForm({ services, whatsapp, initialIntent = "meeting", initialService }: Props) {
+  const [intent, setIntent] = useState<ContactIntent>(initialIntent);
+  const [picked, setPicked] = useState<string[]>(initialService ? [initialService] : []);
+  const [errors, setErrors] = useState<Errors>({});
+  const [state, setState] = useState<"idle" | "sending" | "failed">("idle");
+  const [sent, setSent] = useState<Sent | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  // One key per filled form: a double click or a retry after a dropped connection reuses it, so only one request is stored.
+  const idem = useRef("");
+  const openedAt = useRef(0);
   useEffect(() => {
-    if (sent) doneRef.current?.focus();
-  }, [sent]);
+    openedAt.current = Date.now();
+  }, []);
+
+  useLinkedIntent((linked) => {
+    setIntent(linked);
+    setErrors({});
+    setSent(null);
+  });
 
   function toggle(slug: string) {
     setErrors((e) => ({ ...e, services: "" }));
@@ -96,79 +182,24 @@ export function ContactForm({ services, whatsapp, initialIntent = "meeting", ini
     };
     setState("sending");
     setErrors({});
-    try {
-      const res = await fetch("/api/requests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok && data.ref) {
-        idem.current = "";
-        setState("idle");
-        setSent({ ref: data.ref, type: intent, services: picked, day: payload.day, name: payload.name });
-        track("request_saved", { request_type: intent, service: picked.join(","), source: payload.source });
-        return;
-      }
-      if (res.status === 422 && data.errors) {
-        setErrors(data.errors);
-        setState("idle");
-        // Move focus to the first field that needs fixing.
-        requestAnimationFrame(() => formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus());
-        return;
-      }
-      setErrors({ form: data.error ?? "صار خطأ من عندنا. جرّب مرة ثانية." });
-    } catch {
-      setErrors({ form: "انقطع الاتصال قبل ما يوصل طلبك. تأكد من النت واضغط إرسال مرة ثانية، وما راح يتكرر الطلب." });
+    const result = await postRequest(payload);
+    if (result.kind === "saved") {
+      idem.current = "";
+      setState("idle");
+      setSent({ ref: result.ref, type: intent, services: picked, day: payload.day, name: payload.name });
+      track("request_saved", { request_type: intent, service: picked.join(","), source: payload.source });
+    } else if (result.kind === "invalid") {
+      setErrors(result.errors);
+      setState("idle");
+      // Move focus to the first field that needs fixing.
+      requestAnimationFrame(() => formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus());
+    } else {
+      setErrors({ form: result.error });
+      setState("failed");
     }
-    setState("failed");
   }
 
-  if (sent) {
-    const titles = sent.services.map((s) => services.find((x) => x.slug === s)?.title ?? s);
-    const msg = [
-      `${contactIntents.find((c) => c.id === sent.type)!.emoji} *${intentLabel(sent.type)}*`,
-      `الرقم المرجعي: *${sent.ref}*`,
-      "",
-      `هلا ماين ستريم 👋 أنا ${sent.name}، أرسلت طلب من الموقع وأبغى أتابعه.`,
-      ...(titles.length ? ["", "*الخدمات المطلوبة*", ...titles.map((t, i) => `${i + 1}. ${t}`)] : []),
-      ...(sent.day ? ["", `اليوم المفضل: ${formatDay(sent.day)}`] : []),
-    ].join("\n");
-    const onWhatsApp = () => {
-      const data = { type: sent.type, service: sent.services.join(","), source: pageSource() };
-      track("whatsapp_click", { request_type: data.type, service: data.service, source: data.source });
-      navigator.sendBeacon?.("/api/events", new Blob([JSON.stringify({ name: "whatsapp_click", ...data })], { type: "application/json" }));
-    };
-    return (
-      <div className="sent" ref={doneRef} tabIndex={-1} role="status">
-        <p className="sent__stamp">وصلنا طلبك</p>
-        <p className="sent__ref">
-          رقمك المرجعي
-          <strong dir="ltr">{sent.ref}</strong>
-        </p>
-        <p className="sent__text">
-          {sent.type === "meeting"
-            ? "بيتواصل معك الفريق لتأكيد موعد الاجتماع. الموعد ما يعتبر مؤكد إلا بعد تواصلنا معك."
-            : "حفظنا طلبك وبيتواصل معك الفريق قريب. احتفظ بالرقم المرجعي للمتابعة."}
-        </p>
-        <div className="sent__actions">
-          <a
-            className="ribbon-btn ribbon-btn--red ribbon-btn--md"
-            href={whatsappLink(whatsapp, msg)}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={onWhatsApp}
-          >
-            <Icon className="ribbon-btn__icon">{social.whatsapp}</Icon>
-            <span>تابع طلبك على واتساب</span>
-          </a>
-          <button type="button" className="text-link sent__again" onClick={() => setSent(null)}>
-            أرسل طلب ثاني
-          </button>
-        </div>
-      </div>
-    );
-  }
+  if (sent) return <SentCard sent={sent} services={services} whatsapp={whatsapp} onAgain={() => setSent(null)} />;
 
   const err = (name: string) =>
     errors[name] ? (
@@ -184,13 +215,7 @@ export function ContactForm({ services, whatsapp, initialIntent = "meeting", ini
   );
   const businessLabel = intent === "partner" ? "اسم الجهة" : "اسم النشاط";
   const businessRequired = intent === "quote" || intent === "partner";
-  const messageLabel = { meeting: "تفاصيل إضافية", quote: "وصف الاحتياج", inquiry: "سؤالك", partner: "مقترح التعاون" }[intent];
-  const messagePlaceholder = {
-    meeting: "مثلاً: عندنا افتتاح فرع جديد الشهر الجاي",
-    quote: "وش تحتاج بالضبط؟ مثلاً: إدارة حسابين وتصوير شهري",
-    inquiry: "اكتب سؤالك",
-    partner: "عرّفنا على فكرتك وكيف نتعاون",
-  }[intent];
+  const message = MESSAGE_FIELD[intent];
 
   return (
     <form className="quote__form" ref={formRef} onSubmit={onSubmit} noValidate aria-busy={state === "sending"}>
@@ -319,8 +344,8 @@ export function ContactForm({ services, whatsapp, initialIntent = "meeting", ini
       )}
 
       <label className="quote__field">
-        {label(messageLabel, intent === "meeting")}
-        <textarea name="message" rows={3} maxLength={2000} required={intent !== "meeting"} placeholder={messagePlaceholder} {...aria("message")} />
+        {label(message.label, intent === "meeting")}
+        <textarea name="message" rows={3} maxLength={2000} required={intent !== "meeting"} placeholder={message.placeholder} {...aria("message")} />
         {err("message")}
       </label>
 
