@@ -7,8 +7,14 @@ import { MEDIA_NAME, uploadPath } from "@/lib/uploads";
 export async function GET(req: Request, { params }: { params: Promise<{ name: string }> }) {
   const { name } = await params;
   if (!MEDIA_NAME.test(name)) return new Response(null, { status: 404 });
-  const info = await stat(uploadPath(name)).catch(() => null);
-  if (!info) return new Response(null, { status: 404 });
+  let info: Awaited<ReturnType<typeof stat>>;
+  try {
+    info = await stat(uploadPath(name));
+  } catch (e) {
+    // Only a missing file is a 404; anything else (permissions, a broken disk) is a real server error.
+    if ((e as NodeJS.ErrnoException).code === "ENOENT") return new Response(null, { status: 404 });
+    throw e;
+  }
 
   const headers: Record<string, string> = {
     "Content-Type": name.endsWith(".mp4") ? "video/mp4" : "image/webp",

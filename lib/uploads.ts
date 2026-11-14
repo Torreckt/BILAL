@@ -11,6 +11,17 @@ export const MAX_VIDEO_BYTES = 30 * 1024 * 1024;
 export const MEDIA_NAME = /^[a-f0-9]{32}\.(webp|mp4)$/;
 export const uploadPath = (name: string) => join(resolve(env.uploadDir), name);
 
+const isMissingFile = (e: unknown) => (e as NodeJS.ErrnoException | null)?.code === "ENOENT";
+
+/** Deletes an uploaded file. A file that is already gone is fine; any other failure (permissions, IO) is raised. */
+async function deleteFile(name: string) {
+  try {
+    await unlink(uploadPath(name));
+  } catch (e) {
+    if (!isMissingFile(e)) throw e;
+  }
+}
+
 /**
  * Stores a file uploaded from the dashboard. The type is decided by the file's real content, never its name:
  * images are decoded and re-encoded to WebP (which also drops EXIF/location data); videos must be MP4.
@@ -37,22 +48,28 @@ export async function saveUpload(file: File, userId: string, portraitVideo: bool
         .resize({ width: 2400, height: 2400, fit: "inside", withoutEnlargement: true })
         .webp({ quality: 82 })
         .toBuffer({ resolveWithObject: true });
-    } catch {
-      throw new Error("الملف ليس صورة أو فيديو MP4 صالح");
+    } catch (e) {
+      throw new Error("الملف ليس صورة أو فيديو MP4 صالح", { cause: e });
     }
     name = `${id}.webp`;
     bytes = out.data.length;
     await writeFile(uploadPath(name), out.data);
     item = { type: "image", src: `/media/${name}`, w: out.info.width, h: out.info.height };
   }
-  await sql`insert into media (path, kind, width, height, bytes, uploaded_by)
-            values (${name}, ${item.type}, ${item.w}, ${item.h}, ${bytes}, ${userId})`;
+  try {
+    await sql`insert into media (path, kind, width, height, bytes, uploaded_by)
+              values (${name}, ${item.type}, ${item.w}, ${item.h}, ${bytes}, ${userId})`;
+  } catch (e) {
+    // Without its media row the file would be unreachable from the dashboard, so don't leave it behind.
+    await deleteFile(name).catch((cleanup) => console.error("upload cleanup failed", name, cleanup));
+    throw e;
+  }
   return item;
 }
 
 export async function removeUpload(src: string) {
   const name = src.replace(/^\/media\//, "");
   if (!MEDIA_NAME.test(name)) return; // seeded files under /work are part of the code base
-  await unlink(uploadPath(name)).catch(() => {});
+  await deleteFile(name);
   await sql`delete from media where path = ${name}`;
 }

@@ -6,11 +6,17 @@ import { parseRequest, saveRequest } from "@/lib/requests";
 
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
 
-export async function POST(req: Request) {
-  // Browsers always send Origin on cross-site POSTs; reject anything not coming from our own pages.
+/** True only when the Origin header parses and names this host; a malformed Origin is a rejection, not a crash. */
+function isSameOrigin(req: Request) {
   const origin = req.headers.get("origin");
   const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
-  if (!origin || new URL(origin).host !== host) return json({ error: "طلب غير مسموح" }, 403);
+  if (!origin || !URL.canParse(origin)) return false;
+  return new URL(origin).host === host;
+}
+
+export async function POST(req: Request) {
+  // Browsers always send Origin on cross-site POSTs; reject anything not coming from our own pages.
+  if (!isSameOrigin(req)) return json({ error: "طلب غير مسموح" }, 403);
   if (Number(req.headers.get("content-length") ?? 0) > 20_000) return json({ error: "الطلب كبير" }, 413);
 
   let body: Record<string, unknown>;

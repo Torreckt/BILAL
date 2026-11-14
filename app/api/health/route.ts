@@ -7,7 +7,8 @@ export async function GET() {
   try {
     await sql`select 1`;
     return Response.json({ ok: true });
-  } catch {
+  } catch (e) {
+    console.error("health check: database unreachable", e);
     return Response.json({ ok: false }, { status: 503 });
   }
 }
