@@ -37,9 +37,9 @@ describe("data layer", { skip: !DB && "set TEST_DATABASE_URL to run" }, () => {
     content = await import("../lib/admin/content");
     events = await import("../lib/events");
     audit = await import("../lib/audit");
-    owner = (await users.insertUser("owner@test.local", "المالك", "owner", "x"))!;
-    agent = (await users.insertUser("agent@test.local", "المتابع", "agent", "x"))!;
-    await users.insertUser("editor@test.local", "المحرر", "editor", "x");
+    owner = (await users.insertUser("owner", "المالك", "owner", "x"))!;
+    agent = (await users.insertUser("agent", "المتابع", "agent", "x"))!;
+    await users.insertUser("editor", "المحرر", "editor", "x");
   });
 
   after(async () => {
@@ -112,33 +112,27 @@ describe("data layer", { skip: !DB && "set TEST_DATABASE_URL to run" }, () => {
 
   test("the fifth wrong password in a row locks the account", async () => {
     for (let i = 1; i <= 4; i++) {
-      const u = (await users.findActiveUserByEmail("agent@test.local"))!;
+      const u = (await users.findActiveUserByUsername("agent"))!;
       assert.equal(await users.recordFailedLogin(u), false, `attempt ${i} doesn't lock`);
     }
-    const u = (await users.findActiveUserByEmail("agent@test.local"))!;
+    const u = (await users.findActiveUserByUsername("agent"))!;
     assert.equal(await users.recordFailedLogin(u), true);
-    assert.equal((await users.findActiveUserByEmail("agent@test.local"))!.locked, true);
+    assert.equal((await users.findActiveUserByUsername("agent"))!.locked, true);
     await users.setPasswordHash(agent, "new-hash");
-    const reset = (await users.findActiveUserByEmail("agent@test.local"))!;
+    const reset = (await users.findActiveUserByUsername("agent"))!;
     assert.equal(reset.locked, false, "an owner's password reset lifts the lock");
     assert.equal(reset.failed_logins, 0);
   });
 
-  test("account management: duplicates, roles, deactivation and second-step reset", async () => {
-    assert.equal(await users.insertUser("owner@test.local", "نسخة", "agent", "x"), undefined, "an email registers once");
+  test("account management: duplicates, roles and deactivation", async () => {
+    assert.equal(await users.insertUser("owner", "نسخة", "agent", "x"), undefined, "a username registers once");
     await users.setRole(agent, "editor");
     assert.equal((await users.getUser(agent))!.role, "editor");
     assert.ok(!(await users.listRequestStaff()).some((s) => s.id === agent), "no longer offered for requests");
     await users.toggleActive(agent);
-    assert.equal(await users.findActiveUserByEmail("agent@test.local"), undefined, "inactive accounts can't sign in");
+    assert.equal(await users.findActiveUserByUsername("agent"), undefined, "inactive accounts can't sign in");
     await users.toggleActive(agent);
     await users.setRole(agent, "agent");
-
-    await users.acceptTotpStep(agent, 1234);
-    await sql`update users set totp_secret = 'packed' where id = ${agent}`;
-    assert.deepEqual(await users.totpState(agent), { secret: "packed", lastStep: 1234 });
-    await users.resetTotp(agent);
-    assert.deepEqual(await users.totpState(agent), { secret: null, lastStep: 0 });
   });
 
   test("content rows save, keep slugs unique, and store media as JSON", async () => {

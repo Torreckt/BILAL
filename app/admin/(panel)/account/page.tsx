@@ -14,9 +14,8 @@ export default async function Account({ searchParams }: { searchParams: Search }
       <section className="adm-card">
         <dl className="adm-facts">
           <div><dt>الاسم</dt><dd>{user.name}</dd></div>
-          <div><dt>الإيميل</dt><dd dir="ltr">{user.email}</dd></div>
+          <div><dt>اسم المستخدم</dt><dd dir="ltr">{user.username}</dd></div>
           <div><dt>الدور</dt><dd>{roleLabels[user.role]}</dd></div>
-          <div><dt>التحقق بخطوتين</dt><dd>مفعّل. إذا غيّرت جوالك اطلب من المالك يصفّره لك.</dd></div>
         </dl>
       </section>
       <form className="adm-card adm-stack" action={changePassword}>

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Contact } from "@/components/Contact";
 import { ContactButton } from "@/components/ContactButton";
 import { JsonLd, breadcrumbs, orgRef } from "@/components/JsonLd";
-import { Prose } from "@/components/Prose";
+import { Blocks } from "@/components/Prose";
 import { ServiceIcon } from "@/components/ServiceCards";
 import { RelatedWorks } from "@/components/Works";
 import { getLinks, getService, getServices, getWorks, wantsPreview } from "@/lib/content";
@@ -58,17 +58,8 @@ export default async function ServicePage({ params, searchParams }: Props) {
       </section>
 
       <section className="section page-body">
-        <div className="wrap page-body__grid">
-          <Prose text={service.body} />
-          <aside className="includes" aria-labelledby="includes-title">
-            <h2 id="includes-title">باختصار</h2>
-            <ul>
-              {service.items.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-            <ContactButton intent="quote">اطلب عرض سعر</ContactButton>
-          </aside>
+        <div className="wrap">
+          <Blocks text={service.body} />
         </div>
       </section>
 

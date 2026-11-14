@@ -30,7 +30,7 @@ npm install
 cp .env.example .env.local      # ثم عبّ DATABASE_URL و INSECURE_COOKIES=1
 npm run db:migrate              # ينشئ الجداول
 npm run db:seed                 # يحمّل المحتوى الأولي (الخدمات، الأعمال، الأسئلة)
-npm run admin:create -- you@example.com "اسمك" owner
+npm run admin:create -- admin "اسمك" owner
 npm run dev                     # http://localhost:3000
 ```
 
@@ -47,16 +47,16 @@ npm run dev                     # http://localhost:3000
 
 ## 3. إنشاء أول مدير
 
-ما فيه تسجيل عام. أول حساب ينشأ من السيرفر:
+ما فيه تسجيل عام، والعميل ما يحتاج حساب عشان يرسل طلب. الحسابات للموظفين فقط، وأول حساب ينشأ من السيرفر:
 
 ```bash
-npm run admin:create -- owner@yourdomain.com "اسم المالك" owner
+npm run admin:create -- admin "اسم المالك" owner
 ```
 
+- `admin` هو اسم المستخدم (حروف إنجليزية صغيرة وأرقام، ويُسمح بـ `.` `_` `-`).
 - يطبع كلمة مرور مؤقتة مرة وحدة (أو حدّدها بمتغير `ADMIN_PASSWORD`، 12 حرف أو أكثر).
-- عند أول دخول يطلب النظام تفعيل **التحقق بخطوتين** بتطبيق مصادقة (Google Authenticator أو غيره). بدون الرمز ما تنفتح اللوحة.
-- بعدها غيّر كلمة المرور من «حسابي»، وأضف باقي الموظفين من «المستخدمون».
-- **إذا ضاع جوال المالك:** أعد تشغيل نفس الأمر لنفس الإيميل؛ يصفّر كلمة المرور والتحقق بخطوتين. لباقي الموظفين: المالك يصفّرها من اللوحة.
+- بعدها ادخل على `/admin`، غيّر كلمة المرور من «حسابي»، وأنشئ اسم مستخدم وكلمة مرور لكل موظف من «المستخدمون».
+- **إذا نسي المالك كلمة المرور:** أعد تشغيل نفس الأمر لنفس اسم المستخدم؛ يصفّرها. لباقي الموظفين: المالك يغيّرها من اللوحة.
 
 ## 4. الأدوار والصلاحيات
 
@@ -68,7 +68,7 @@ npm run admin:create -- owner@yourdomain.com "اسم المالك" owner
 
 الصلاحية تُفحص على السيرفر في كل صفحة وكل عملية (`requireUser` في `lib/auth.ts`)، مو بإخفاء الأزرار فقط.
 
-حماية الدخول: قفل الحساب 15 دقيقة بعد 5 محاولات خاطئة، حد للمحاولات من نفس العنوان، جلسة تنتهي بعد 12 ساعة أو ساعتين خمول، وكل تغيير صلاحية يسجّل خروج صاحبه.
+الدخول باسم مستخدم وكلمة مرور (12 حرف أو أكثر) ينشئها المالك لكل موظف. حماية الدخول: قفل الحساب 15 دقيقة بعد 5 محاولات خاطئة، حد للمحاولات من نفس العنوان، جلسة تنتهي بعد 12 ساعة أو ساعتين خمول، وكل تغيير صلاحية يسجّل خروج صاحبه.
 
 ## 5. متغيرات البيئة
 
@@ -77,7 +77,7 @@ npm run admin:create -- owner@yourdomain.com "اسم المالك" owner
 | المتغير | وش يسوي |
 |---|---|
 | `DATABASE_URL` | رابط PostgreSQL |
-| `APP_SECRET` | مفتاح سري عشوائي (32 حرف أو أكثر). **إلزامي في الإنتاج.** ولّده بـ `openssl rand -base64 48`. تغييره يلغي التحقق بخطوتين المسجل للحسابات |
+| `APP_SECRET` | مفتاح سري عشوائي (32 حرف أو أكثر). **إلزامي في الإنتاج.** ولّده بـ `openssl rand -base64 48` |
 | `SITE_URL` | الرابط العام بدون `/` في النهاية، مثل `https://example.com` |
 | `SITE_NOINDEX` | `1` في بيئة التجربة لمنع الفهرسة |
 | `SMTP_HOST` `SMTP_PORT` `SMTP_USER` `SMTP_PASS` `SMTP_FROM` | بريد التنبيهات. من لوحة مزوّد بريد الدومين |
@@ -101,7 +101,7 @@ cp .env.example .env
 #   POSTGRES_PASSWORD=<كلمة مرور قوية>
 docker compose up -d --build        # يبني، يطبّق migrations، ويشغّل
 docker compose exec app npm run db:seed
-docker compose exec app npm run admin:create -- owner@example.com "اسم المالك" owner
+docker compose exec app npm run admin:create -- admin "اسم المالك" owner
 ```
 
 - وجّه سجل DNS من نوع A للدومين (و `www`) إلى عنوان السيرفر قبل التشغيل، عشان Caddy يصدر الشهادة.
@@ -182,13 +182,13 @@ TEST_DATABASE_URL=postgres://.../mainstream_test npm run test:data  # استعل
 TEST_DATABASE_URL=postgres://.../mainstream_test npm run test:e2e   # القاعدة تنمسح!
 ```
 
-اختبار `test:e2e` يشغّل الموقع فعلياً ويفحص: إرسال الطلب من الجوال والرقم المرجعي، الأنواع الأربعة، الحقول الناقصة، منع التكرار، السبام وحد الإرسال، فشل التنبيه وإعادة إرساله، الدخول والتحقق بخطوتين، صلاحيات كل دور، المسودة والمعاينة والنشر، رفع الصور، ملفات SEO، ترويسات الأمان، وسلامة الروابط. يحتاج Playwright (`npm i -D playwright && npx playwright install chromium`).
+اختبار `test:e2e` يشغّل الموقع فعلياً ويفحص: إرسال الطلب من الجوال والرقم المرجعي، الأنواع الأربعة، الحقول الناقصة، منع التكرار، السبام وحد الإرسال، فشل التنبيه وإعادة إرساله، الدخول وقفل الحساب، إنشاء حسابات الموظفين، صلاحيات كل دور، المسودة والمعاينة والنشر، رفع الصور، ملفات SEO، ترويسات الأمان، وسلامة الروابط. يحتاج Playwright (`npm i -D playwright && npx playwright install chromium`).
 
 ## 12. بنية المشروع
 
 ```
 app/(site)/        الصفحات العامة: الرئيسية، services/[slug]، work، privacy
-app/admin/         لوحة الإدارة (login, mfa, والأقسام داخل (panel)) + actions/ (auth, requests, content, settings, users)
+app/admin/         لوحة الإدارة (login والأقسام داخل (panel)) + actions/ (auth, requests, content, settings, users)
 app/api/           requests (استقبال النموذج)، events (عدّادات مجهولة)، health
 app/media/         تقديم الملفات المرفوعة
 components/        مكونات الواجهة (Hero, Nav, Footer, ContactForm, ServiceCards, Works ...)

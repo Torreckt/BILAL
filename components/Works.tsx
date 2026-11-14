@@ -45,7 +45,7 @@ export function RelatedWorks({ id, title, works, preview }: { id: string; title:
             كل الأعمال
           </a>
         </div>
-        <ul className="works">
+        <ul className="works works--rail">
           {works.map((w) => (
             <WorkCard key={w.id} work={w} preview={preview} />
           ))}

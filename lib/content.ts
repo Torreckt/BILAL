@@ -73,5 +73,5 @@ export const getLinks = async (): Promise<Links> => ({ ...defaultLinks, ...(awai
 export async function wantsPreview(searchParams: Promise<Record<string, string | string[] | undefined>>) {
   if ((await searchParams).preview !== "1") return false;
   const user = await getSession();
-  return !!user?.mfa_ok && CONTENT_ROLES.includes(user.role);
+  return !!user && CONTENT_ROLES.includes(user.role);
 }

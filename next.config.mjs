@@ -1,8 +1,12 @@
+// PREVIEW_BASE is only for the static look-only copy published under a sub-path (see scripts/static-preview.mjs).
+const previewBase = process.env.PREVIEW_BASE;
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  ...(previewBase && { basePath: previewBase, assetPrefix: previewBase, distDir: ".next-preview" }),
   reactStrictMode: true,
   poweredByHeader: false,
-  images: { formats: ["image/avif", "image/webp"], minimumCacheTTL: 2678400 },
+  images: { formats: ["image/avif", "image/webp"], minimumCacheTTL: 2678400, unoptimized: !!previewBase },
   experimental: { serverActions: { bodySizeLimit: "40mb" } },
   async headers() {
     return [
