@@ -45,7 +45,7 @@ const schema = z
     z.object({
       ...base,
       type: z.literal("inquiry"),
-      subject: required(120, "اكتب موضوع الاستفسار"),
+      subject: optional(120),
       message: required(2000, "اكتب سؤالك", 5),
     }),
     z.object({

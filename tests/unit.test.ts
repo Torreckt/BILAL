@@ -28,7 +28,7 @@ test("each request type requires its own fields", () => {
   assert.ok(errors({ ...base, type: "meeting" }).meetingType);
   assert.ok(errors({ ...base, type: "quote", services: [], business: "كوفي", message: "نحتاج موقع تعريفي" }).services);
   assert.ok(errors({ ...base, type: "quote", services: ["web"], message: "نحتاج موقع تعريفي" }).business);
-  assert.ok(errors({ ...base, type: "inquiry", message: "كم المدة؟" }).subject);
+  assert.ok(errors({ ...base, type: "inquiry" }).message);
   assert.ok(errors({ ...base, type: "partner", business: "جهة" }).message);
 });
 

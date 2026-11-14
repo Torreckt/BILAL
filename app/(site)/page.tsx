@@ -2,7 +2,6 @@ import { Hero } from "@/components/Hero";
 import { ServiceCards } from "@/components/ServiceCards";
 import { EyeTracker } from "@/components/EyeTracker";
 import { Eye, Wave } from "@/components/Eye";
-import { ContactButton } from "@/components/ContactButton";
 import { Contact } from "@/components/Contact";
 import { JsonLd } from "@/components/Prose";
 import { WorkCard } from "@/components/Works";
@@ -49,60 +48,10 @@ function Services({ services }: { services: Service[] }) {
             وش نسوي لك؟
           </h2>
           <p className="lede">
-            كل خدمة عندنا ملف مفتوح على نشاطك. نتابعه كل يوم، ونرسل لك آخر الشهر وش صار بالأرقام.
+            اختر الخدمة اللي تحتاجها، أو خذ الفريق كامل.
           </p>
-          <ContactButton variant="ink" intent="inquiry">
-            اسألنا عن خدمة
-          </ContactButton>
         </div>
         <ServiceCards services={services} />
-      </div>
-    </section>
-  );
-}
-
-function OneSalary() {
-  return (
-    <section id="team" className="salary" aria-labelledby="salary-title">
-      <p className="ghost ghost--salary" aria-hidden="true">
-        HYPE
-      </p>
-      <div className="wrap salary__grid">
-        <div className="salary__copy">
-          <h2 id="salary-title" className="display display--md display--paper">
-            عين وحدة.. ولا تسع عيون؟
-          </h2>
-          <p className="salary__text">
-            لو تعتمد على شخص واحد، تاخذ عين وحدة على نشاطك. مع ماين ستريم يشتغل لك فريق كامل، كل واحد
-            متخصص في شغلته، وكلهم تحت سقف واحد.
-          </p>
-          <p className="tag tag--ink salary__tag">تصميم · محتوى · تصوير · إعلانات · نتائج</p>
-        </div>
-
-        <div className="salary__compare">
-          <figure className="ledger ledger--one">
-            <figcaption className="ledger__head">شخص واحد</figcaption>
-            <div className="ledger__eyes ledger__eyes--one">
-              <Eye className="ledger__eye" />
-            </div>
-            <p className="ledger__note">يحاول يسوي كل شي</p>
-          </figure>
-          <span className="salary__vs" aria-hidden="true" dir="ltr">
-            VS
-          </span>
-          <figure className="ledger ledger--team">
-            <figcaption className="ledger__head">فريق ماين ستريم</figcaption>
-            <ul className="ledger__eyes">
-              {roles.map((r) => (
-                <li key={r}>
-                  <Eye className="ledger__eye" />
-                  <span>{r}</span>
-                </li>
-              ))}
-            </ul>
-            <p className="ledger__note">كل واحد متخصص في شغلته</p>
-          </figure>
-        </div>
       </div>
     </section>
   );
@@ -124,8 +73,8 @@ function Watchlist({ works, preview }: { works: Work[]; preview: boolean }) {
             كل الأعمال
           </a>
         </div>
-        <ul className="works">
-          {works.slice(0, 3).map((w) => (
+        <ul className="works works--rail">
+          {works.slice(0, 6).map((w) => (
             <WorkCard key={w.id} work={w} preview={preview} />
           ))}
         </ul>
@@ -169,6 +118,7 @@ function Process() {
   );
 }
 
+// One section answers "why us": the team-vs-one-person comparison, then the remaining reasons.
 function Why() {
   return (
     <section id="why" className="why" aria-labelledby="why-title">
@@ -176,11 +126,41 @@ function Why() {
         WHY
       </p>
       <div className="wrap">
-        <div className="why__head">
-          <h2 id="why-title" className="display display--md display--paper">
-            ليش ماين ستريم؟
-          </h2>
-          <p className="tag tag--red">WATCH US</p>
+        <div className="why__top">
+          <div className="why__copy">
+            <h2 id="why-title" className="display display--md display--paper">
+              ليش ماين ستريم؟
+            </h2>
+            <p className="why__lead">عين وحدة.. ولا تسع عيون؟</p>
+            <p className="why__text">
+              لو تعتمد على شخص واحد، تاخذ عين وحدة على نشاطك. مع ماين ستريم يشتغل لك فريق كامل، كل واحد متخصص في
+              شغلته، وكلهم تحت سقف واحد.
+            </p>
+          </div>
+          <div className="compare">
+            <figure className="ledger ledger--one">
+              <figcaption className="ledger__head">شخص واحد</figcaption>
+              <div className="ledger__eyes ledger__eyes--one">
+                <Eye className="ledger__eye" />
+              </div>
+              <p className="ledger__note">يحاول يسوي كل شي</p>
+            </figure>
+            <span className="compare__vs" aria-hidden="true" dir="ltr">
+              VS
+            </span>
+            <figure className="ledger ledger--team">
+              <figcaption className="ledger__head">فريق ماين ستريم</figcaption>
+              <ul className="ledger__eyes">
+                {roles.map((r) => (
+                  <li key={r}>
+                    <Eye className="ledger__eye" />
+                    <span>{r}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="ledger__note">كل واحد متخصص في شغلته</p>
+            </figure>
+          </div>
         </div>
         <ol className="why__list">
           {reasons.map((r, i) => (
@@ -200,14 +180,11 @@ function Why() {
 
 function Sectors() {
   return (
-    <section id="sectors" className="section sectors" aria-labelledby="sectors-title">
-      <div className="wrap sectors__grid">
-        <div>
-          <h2 id="sectors-title" className="display display--md">
-            نشتغل مع
-          </h2>
-          <p className="lede sectors__lede">أي نشاط يبي يكبر، من الكوفي الصغير للشركة. هذي بعض القطاعات اللي نخدمها:</p>
-        </div>
+    <section id="sectors" className="sectors" aria-labelledby="sectors-title">
+      <div className="wrap sectors__row">
+        <h2 id="sectors-title" className="sectors__title">
+          نشتغل مع
+        </h2>
         <ul className="sectors__list">
           {sectors.map((s) => (
             <li key={s}>{s}</li>
@@ -239,26 +216,6 @@ function Faq({ faqs }: { faqs: FaqRow[] }) {
   );
 }
 
-function Finale() {
-  return (
-    <section className="finale" aria-labelledby="finale-title">
-      <div className="finale__dots" aria-hidden="true" />
-      <div className="wrap finale__inner">
-        <Wave className="finale__wave" />
-        <h2 id="finale-title" className="display finale__title">
-          انت استرخ.. وخلي الإبداع علينا
-        </h2>
-        <ContactButton variant="paper" size="lg">
-          اطلب اجتماعك الآن
-        </ContactButton>
-        <p className="tag tag--paper finale__tag" dir="ltr">
-          WATCH US.
-        </p>
-      </div>
-    </section>
-  );
-}
-
 export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const preview = await wantsPreview(searchParams);
   const [services, works, faqs, links] = await Promise.all([getServices(preview), getWorks(preview), getFaqs(preview), getLinks()]);
@@ -267,15 +224,13 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
       <span id="top" />
       <Hero />
       <Stream />
+      <Watchlist works={works} preview={preview} />
       <Services services={services} />
       <Why />
-      <OneSalary />
-      <Sectors />
-      <Watchlist works={works} preview={preview} />
       <Process />
-      <Contact links={links} services={services} />
+      <Sectors />
       <Faq faqs={faqs} />
-      <Finale />
+      <Contact links={links} services={services} />
       <EyeTracker />
       {faqs.length > 0 && (
         <JsonLd

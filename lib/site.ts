@@ -24,12 +24,7 @@ export const roles = [
   "استراتيجي",
 ] as const;
 
-// TODO: راجع النقاط قبل النشر.
 export const reasons = [
-  {
-    title: "فريق كامل، مو شخص واحد",
-    text: "تسعة متخصصين يشتغلون على نشاطك، كل واحد في شغلته، بدل ما يكون كل الحمل على شخص واحد.",
-  },
   {
     title: "أرقام واضحة كل شهر",
     text: "تقرير أداء شهري: وش نشرنا، وش صرفنا، ووش صار بالأرقام.",
@@ -58,12 +53,12 @@ export const sectors = [
 
 export type ContactIntent = "meeting" | "quote" | "inquiry" | "partner";
 
-// `label` is what the visitor presses; `noun` names the request in the dashboard, emails and WhatsApp.
+// `label` is the tab the visitor presses; `noun` names the request in the dashboard, emails and WhatsApp.
 export const contactIntents: { id: ContactIntent; label: string; noun: string; emoji: string }[] = [
-  { id: "meeting", label: "اطلب اجتماع", noun: "طلب اجتماع", emoji: "📅" },
-  { id: "quote", label: "اطلب عرض سعر", noun: "طلب عرض سعر", emoji: "🧾" },
+  { id: "meeting", label: "اجتماع", noun: "طلب اجتماع", emoji: "📅" },
+  { id: "quote", label: "عرض سعر", noun: "طلب عرض سعر", emoji: "🧾" },
   { id: "inquiry", label: "استفسار", noun: "استفسار", emoji: "💬" },
-  { id: "partner", label: "تعاون وشراكة", noun: "طلب تعاون وشراكة", emoji: "🤝" },
+  { id: "partner", label: "تعاون", noun: "طلب تعاون وشراكة", emoji: "🤝" },
 ];
 export const intentLabel = (t: string) => contactIntents.find((c) => c.id === t)?.noun ?? t;
 

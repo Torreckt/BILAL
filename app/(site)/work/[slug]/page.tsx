@@ -91,7 +91,7 @@ export default async function WorkPage({ params, searchParams }: Props) {
                 كل الأعمال
               </a>
             </div>
-            <ul className="works">
+            <ul className="works works--rail">
               {others.map((w) => (
                 <WorkCard key={w.id} work={w} preview={preview} />
               ))}

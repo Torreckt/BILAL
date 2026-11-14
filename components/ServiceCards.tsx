@@ -119,7 +119,7 @@ export function ServiceCards({ services }: { services: Card[] }) {
             ))}
           </ul>
           <span className="svc__more" aria-hidden="true">
-            تفاصيل الخدمة ←
+            <span>تفاصيل الخدمة</span> ←
           </span>
         </li>
       ))}

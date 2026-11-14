@@ -11,53 +11,46 @@ type Props = {
   initialService?: string;
 };
 
-// 966500000000 → +966 50 000 0000
-const phoneDisplay = (n: string) => `+${n.slice(0, 3)} ${n.slice(3, 5)} ${n.slice(5, 8)} ${n.slice(8)}`;
-
+// The form comes first. Direct channels sit after it as a quieter alternative, not as competing buttons.
 export function Contact({
   links,
   services,
   title = "تواصل معنا",
-  lede = "تبي تطلب اجتماع، أو عرض سعر، أو عندك سؤال؟ اختر طلبك وعبّ النموذج. يوصلنا طلبك مباشرة، ويطلع لك رقم مرجعي تتابع فيه.",
+  lede = "انت استرخ.. وخلي الإبداع علينا. اختر طلبك وعبّه، ويطلع لك رقم مرجعي تتابع فيه.",
   initialIntent,
   initialService,
 }: Props) {
-  const channels = [
-    { label: "واتساب", value: "محادثة مباشرة مع الفريق", href: whatsappLink(links.whatsapp, DEFAULT_MESSAGE), icon: social.whatsapp },
-    { label: "اتصل علينا", value: phoneDisplay(links.whatsapp), href: `tel:+${links.whatsapp}`, ltr: true, icon: social.phone },
-    { label: "الإيميل", value: links.email, href: `mailto:${links.email}`, ltr: true, icon: social.email },
-    { label: "إنستغرام", value: `@${links.instagram}`, href: `https://instagram.com/${links.instagram}`, ltr: true, icon: social.instagram },
-    { label: "تيك توك", value: `@${links.tiktok}`, href: `https://www.tiktok.com/@${links.tiktok}`, ltr: true, icon: social.tiktok },
-  ];
   return (
-    <section id="contact" className="section quote" aria-labelledby="contact-title">
+    <section id="contact" className="section contact" aria-labelledby="contact-title">
       {/* Scroll targets for ContactButton links; ContactForm reads which one was used. */}
       <span id="contact-meeting" className="contact__anchor" />
       <span id="contact-quote" className="contact__anchor" />
       <span id="contact-inquiry" className="contact__anchor" />
       <span id="contact-partner" className="contact__anchor" />
-      <div className="wrap quote__grid">
-        <div className="quote__intro">
+      <div className="wrap contact__grid">
+        <div className="contact__head">
           <h2 id="contact-title" className="display display--md">
             {title}
           </h2>
           <p className="lede">{lede}</p>
-          <ul className="contact__channels" aria-label="قنوات التواصل المباشر">
-            {channels.map((c) => (
-              <li key={c.label}>
-                <a href={c.href} target={c.href.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer">
-                  <Icon>{c.icon}</Icon>
-                  <span className="contact__label">{c.label}</span>
-                  <span className="contact__value" dir={c.ltr ? "ltr" : undefined}>
-                    {c.value}
-                  </span>
-                </a>
-              </li>
-            ))}
-          </ul>
         </div>
-        <div className="quote__sheet">
+        <div className="sheet contact__sheet">
           <ContactForm services={services} whatsapp={links.whatsapp} initialIntent={initialIntent} initialService={initialService} />
+        </div>
+        <div className="contact__direct">
+          <p className="contact__or">أو كلّمنا مباشرة</p>
+          <div className="contact__channels">
+            <a className="btn btn--ink" href={whatsappLink(links.whatsapp, DEFAULT_MESSAGE)} target="_blank" rel="noopener noreferrer">
+              <Icon>{social.whatsapp}</Icon>
+              واتساب
+            </a>
+            <a className="btn btn--square" href={`tel:+${links.whatsapp}`} aria-label="اتصل علينا" title="اتصل علينا">
+              <Icon>{social.phone}</Icon>
+            </a>
+            <a className="btn btn--square" href={`mailto:${links.email}`} aria-label="راسلنا على الإيميل" title="راسلنا على الإيميل">
+              <Icon>{social.email}</Icon>
+            </a>
+          </div>
         </div>
       </div>
     </section>

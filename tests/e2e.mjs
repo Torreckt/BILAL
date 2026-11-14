@@ -131,7 +131,7 @@ try {
   await visitor.goto(`${BASE}/services/web`);
   await visitor.click('a[href="#contact-quote"] >> nth=0');
   check("service page: quote type preselected", await visitor.isChecked('input[name="intent"][value="quote"]'));
-  check("service page: this service preselected", await visitor.isChecked('.quote__chip:has-text("تصميم المواقع") input'));
+  check("service page: this service preselected", await visitor.isChecked('.chip:has-text("تصميم المواقع") input'));
   await visitor.fill('input[name="name"]', "عميل تجربة الجوال");
   await visitor.fill('input[name="phone"]', "0501234567");
   await visitor.fill('input[name="business"]', "كوفي التجربة");
@@ -227,8 +227,8 @@ try {
   await fp.goto(`${BASE}/#contact-quote`);
   await sleep(2700);
   await fp.click('button:has-text("أرسل الطلب")');
-  await fp.waitForSelector('.quote__error[role="alert"]');
-  const alerts = await fp.locator('.quote__error[role="alert"]').allTextContents();
+  await fp.waitForSelector('.form__error[role="alert"]');
+  const alerts = await fp.locator('.form__error[role="alert"]').allTextContents();
   check("form shows field errors in Arabic and marks the fields", alerts.length >= 3 && alerts.some((a) => a.includes("اكتب اسمك")) && (await fp.getAttribute('input[name="name"]', "aria-invalid")) === "true", alerts.join(" | "));
   check("focus moves to the first invalid field", (await fp.evaluate(() => document.activeElement?.getAttribute("name"))) === "name");
 
