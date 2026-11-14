@@ -2,7 +2,7 @@ import { randomInt } from "node:crypto";
 import { z } from "zod";
 import { sql } from "./db";
 import { riyadhToday } from "./dates";
-import { meetingTimes, meetingTypes, type ContactIntent } from "./intents";
+import { meetingTimes, meetingTypes, type ContactIntent, type RequestStatus } from "./intents";
 
 const clean = (max: number) =>
   z.preprocess((v) => (typeof v === "string" ? v.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "").trim() : v), z.string().max(max, "النص أطول من المسموح"));
@@ -59,6 +59,13 @@ const schema = z
   .refine((d) => d.phone || d.email, { path: ["phone"], message: "اكتب رقم جوالك أو إيميلك عشان نقدر نرد عليك" });
 
 export type RequestInput = z.infer<typeof schema>;
+
+/** Checks what the schema can't on its own: a quote may only name published services. Returns field errors, or null. */
+export async function checkReferences(data: RequestInput): Promise<FieldErrors | null> {
+  if (data.type !== "quote") return null;
+  const [{ n }] = await sql<{ n: number }[]>`select count(*)::int as n from services where status = 'published' and slug in ${sql(data.services)}`;
+  return n === new Set(data.services).size ? null : { services: "اختر الخدمات من القائمة" };
+}
 export type FieldErrors = Record<string, string>;
 
 export function parseRequest(data: unknown): { ok: true; data: RequestInput } | { ok: false; errors: FieldErrors } {
@@ -80,7 +87,7 @@ export type RequestRow = {
   id: string;
   ref: string;
   type: ContactIntent;
-  status: string;
+  status: RequestStatus;
   name: string;
   phone: string | null;
   email: string | null;

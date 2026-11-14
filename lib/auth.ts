@@ -4,15 +4,10 @@ import { cache } from "react";
 import { sql } from "./db";
 import { env } from "./env";
 import { randomToken, sha256 } from "./crypto";
+import type { Role } from "./roles";
 import { SESSION_COOKIE_PLAIN, SESSION_COOKIE_SECURE } from "./session-cookie";
 
-export type Role = "owner" | "agent" | "editor";
 export type SessionUser = { id: string; username: string; name: string; role: Role };
-
-// What each role may do. Every server action and page checks this on the server.
-export const roleLabels: Record<Role, string> = { owner: "مالك", agent: "مسؤول متابعة", editor: "محرر محتوى" };
-export const REQUEST_ROLES: Role[] = ["owner", "agent"];
-export const CONTENT_ROLES: Role[] = ["owner", "editor"];
 
 const COOKIE = env.secureCookies ? SESSION_COOKIE_SECURE : SESSION_COOKIE_PLAIN;
 const ABSOLUTE_HOURS = 12;

@@ -15,8 +15,8 @@ let dummyHash: Promise<string> | undefined;
 export async function login(f: FormData) {
   const username = field(f, "username", 60).toLowerCase();
   const password = field(f, "password", 200);
-  const fail = () => redirectWithMessage("/admin/login", { error: "اسم المستخدم أو كلمة المرور غير صحيحة، أو الحساب مقفل مؤقتاً." });
-  if (!(await consumeRateLimit(`login:${await clientKey()}`, 10, 600))) {
+  const fail: () => never = () => redirectWithMessage("/admin/login", { error: "اسم المستخدم أو كلمة المرور غير صحيحة، أو الحساب مقفل مؤقتاً." });
+  if (!(await consumeRateLimit(`login:${await clientKey()}`, { limit: 10, windowSeconds: 600 }))) {
     redirectWithMessage("/admin/login", { error: "محاولات كثيرة. جرّب بعد عشر دقايق." });
   }
 
@@ -25,7 +25,7 @@ export async function login(f: FormData) {
   const ok = await verifyPassword(password, user?.password_hash ?? (await (dummyHash ??= hashPassword(randomToken()))));
   if (!user || user.locked) fail();
   if (!ok) {
-    const locked = await recordFailedLogin(user);
+    const locked = await recordFailedLogin(user.id);
     await audit(user, locked ? "login.locked" : "login.failed", "user", user.id);
     fail();
   }
@@ -43,8 +43,8 @@ export async function logout() {
 export async function changePassword(f: FormData) {
   const me = await requireUser();
   const next = field(f, "next", 200);
-  const current = await passwordHash(me.id);
-  if (!(await consumeRateLimit(`pw:${me.id}`, 5, 600)) || !(await verifyPassword(field(f, "current", 200), current))) {
+  const current = (await passwordHash(me.id)) ?? "";
+  if (!(await consumeRateLimit(`pw:${me.id}`, { limit: 5, windowSeconds: 600 })) || !(await verifyPassword(field(f, "current", 200), current))) {
     redirectWithMessage("/admin/account", { error: "كلمة المرور الحالية غير صحيحة." });
   }
   if (next.length < MIN_PASSWORD) redirectWithMessage("/admin/account", { error: `كلمة المرور الجديدة لازم ${MIN_PASSWORD} حرف أو أكثر.` });

@@ -1,7 +1,9 @@
 // Anonymous funnel events: a name plus request type / service / source. Never customer details.
 import { sql } from "./db";
 
-export async function recordEvent(name: string, requestType: string | null, service: string | null, source: string | null) {
+type FunnelEvent = { name: string; requestType?: string | null; service?: string | null; source?: string | null };
+
+export async function recordEvent({ name, requestType = null, service = null, source = null }: FunnelEvent) {
   await sql`insert into events (name, request_type, service, source) values (${name}, ${requestType}, ${service}, ${source})`;
 }
 

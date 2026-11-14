@@ -1,4 +1,5 @@
-import { CONTENT_ROLES, REQUEST_ROLES, requireUser } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
+import { CONTENT_ROLES, REQUEST_ROLES } from "@/lib/roles";
 import { contentCounts } from "@/lib/admin/content";
 import { recentRequests, requestStats } from "@/lib/admin/requests";
 import { eventCounts } from "@/lib/events";

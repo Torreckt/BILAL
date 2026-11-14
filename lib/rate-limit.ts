@@ -13,7 +13,7 @@ export async function clientKey() {
  * Records one attempt against `key` and returns whether it is still within `limit` for the current window.
  * Fixed-window counter in the database, so limits hold across restarts and instances.
  */
-export async function consumeRateLimit(key: string, limit: number, windowSeconds: number) {
+export async function consumeRateLimit(key: string, { limit, windowSeconds }: { limit: number; windowSeconds: number }) {
   const [row] = await sql<{ count: number }[]>`
     insert into rate_limits (key, bucket)
     values (${key}, to_timestamp(floor(extract(epoch from now()) / ${windowSeconds}) * ${windowSeconds}))

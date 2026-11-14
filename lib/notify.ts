@@ -8,6 +8,15 @@ import type { RequestRow } from "./requests";
 
 /** Emails the team about a saved request and records the outcome on the row. Never throws. */
 export async function notifyRequest(id: string) {
+  try {
+    await sendAndRecord(id);
+  } catch (e) {
+    // Database trouble while reading or recording: the request itself is already saved, so only log it.
+    console.error(JSON.stringify({ level: "error", event: "notify_record_failed", id, error: e instanceof Error ? e.message : String(e) }));
+  }
+}
+
+async function sendAndRecord(id: string) {
   const [r] = await sql<RequestRow[]>`select * from requests where id = ${id}`;
   if (!r) return;
   let error: string | null = null;
@@ -24,7 +33,7 @@ export async function notifyRequest(id: string) {
       ["نوع النشاط", r.sector],
       ["الخدمات", r.services.join("، ") || null],
       ["نوع الاجتماع", r.meeting_type],
-      ["اليوم المفضل", r.meeting_day && formatDay(String(r.meeting_day).slice(0, 10))],
+      ["اليوم المفضل", r.meeting_day && formatDay(r.meeting_day)],
       ["الفترة", r.meeting_time],
       ["الموضوع", r.subject],
       ["التفاصيل", r.message],

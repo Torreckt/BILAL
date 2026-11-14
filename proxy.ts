@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { env } from "./lib/env";
 import { SESSION_COOKIES } from "./lib/session-cookie";
 
 // Runs before every page: issues the Content-Security-Policy with a per-request nonce, keeps the dashboard out of
@@ -13,7 +14,7 @@ export function proxy(req: NextRequest) {
   }
 
   const nonce = btoa(crypto.randomUUID());
-  const dev = process.env.NODE_ENV !== "production";
+  const dev = !env.prod;
   const csp = [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${dev ? " 'unsafe-eval'" : ""}`,
@@ -35,7 +36,7 @@ export function proxy(req: NextRequest) {
   headers.set("Content-Security-Policy", csp);
   const res = NextResponse.next({ request: { headers } });
   res.headers.set("Content-Security-Policy", csp);
-  if (admin || process.env.SITE_NOINDEX === "1") res.headers.set("X-Robots-Tag", "noindex, nofollow");
+  if (admin || env.noindex) res.headers.set("X-Robots-Tag", "noindex, nofollow");
   if (admin) res.headers.set("Cache-Control", "no-store");
   return res;
 }

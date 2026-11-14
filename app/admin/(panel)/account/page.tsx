@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { requireUser, roleLabels } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
+import { roleLabels } from "@/lib/roles";
 import { changePassword } from "../../actions/auth";
 import { Flash, type Search } from "../../ui";
 

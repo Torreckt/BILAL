@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { requireUser, roleLabels, type Role } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
+import { roleLabels, type Role, OWNER_ROLES, ROLES } from "@/lib/roles";
 import { listUsers } from "@/lib/admin/users";
 import { createUser, updateUser } from "../../actions/users";
 import { Badge, Flash, type Search } from "../../ui";
@@ -13,7 +14,7 @@ const roleHelp: Record<Role, string> = {
 };
 
 export default async function Users({ searchParams }: { searchParams: Search }) {
-  const me = await requireUser("owner");
+  const me = await requireUser(...OWNER_ROLES);
   const users = await listUsers();
   return (
     <>
@@ -22,7 +23,7 @@ export default async function Users({ searchParams }: { searchParams: Search }) 
       <section className="adm-card">
         <h2>الأدوار</h2>
         <dl className="adm-facts">
-          {(Object.keys(roleLabels) as Role[]).map((r) => (
+          {ROLES.map((r) => (
             <div key={r}>
               <dt>{roleLabels[r]}</dt>
               <dd>{roleHelp[r]}</dd>
@@ -47,7 +48,7 @@ export default async function Users({ searchParams }: { searchParams: Search }) 
                 <input type="hidden" name="id" value={u.id} />
                 <input type="hidden" name="op" value="role" />
                 <select name="role" defaultValue={u.role} aria-label="الدور">
-                  {(Object.keys(roleLabels) as Role[]).map((r) => (
+                  {ROLES.map((r) => (
                     <option key={r} value={r}>{roleLabels[r]}</option>
                   ))}
                 </select>
@@ -55,7 +56,8 @@ export default async function Users({ searchParams }: { searchParams: Search }) 
               </form>
               <form action={updateUser}>
                 <input type="hidden" name="id" value={u.id} />
-                <input type="hidden" name="op" value="toggle" />
+                <input type="hidden" name="op" value="active" />
+                <input type="hidden" name="active" value={u.active ? "0" : "1"} />
                 <button className="adm-btn" type="submit">{u.active ? "أوقف الحساب" : "فعّل الحساب"}</button>
               </form>
               <form className="adm-row" action={updateUser}>
@@ -84,7 +86,7 @@ export default async function Users({ searchParams }: { searchParams: Search }) 
           <label className="adm-field">
             <span>الدور</span>
             <select name="role" defaultValue="agent">
-              {(Object.keys(roleLabels) as Role[]).map((r) => (
+              {ROLES.map((r) => (
                 <option key={r} value={r}>{roleLabels[r]}</option>
               ))}
             </select>

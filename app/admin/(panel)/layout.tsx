@@ -1,19 +1,20 @@
 import { Eye } from "@/components/Eye";
-import { CONTENT_ROLES, REQUEST_ROLES, requireUser, roleLabels, type Role } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
+import { CONTENT_ROLES, REQUEST_ROLES, roleLabels, type Role, OWNER_ROLES, ROLES } from "@/lib/roles";
 import { countNewRequests } from "@/lib/admin/requests";
 import { logout } from "../actions/auth";
 import { Menu } from "../Menu";
 
 const menu: { href: string; label: string; roles: Role[] }[] = [
-  { href: "/admin", label: "نظرة عامة", roles: ["owner", "agent", "editor"] },
+  { href: "/admin", label: "نظرة عامة", roles: [...ROLES] },
   { href: "/admin/requests", label: "الطلبات", roles: REQUEST_ROLES },
   { href: "/admin/services", label: "الخدمات", roles: CONTENT_ROLES },
   { href: "/admin/works", label: "الأعمال", roles: CONTENT_ROLES },
   { href: "/admin/faqs", label: "الأسئلة الشائعة", roles: CONTENT_ROLES },
   { href: "/admin/settings", label: "الإعدادات", roles: CONTENT_ROLES },
-  { href: "/admin/users", label: "المستخدمون", roles: ["owner"] },
-  { href: "/admin/audit", label: "سجل التغييرات", roles: ["owner"] },
-  { href: "/admin/account", label: "حسابي", roles: ["owner", "agent", "editor"] },
+  { href: "/admin/users", label: "المستخدمون", roles: OWNER_ROLES },
+  { href: "/admin/audit", label: "سجل التغييرات", roles: OWNER_ROLES },
+  { href: "/admin/account", label: "حسابي", roles: [...ROLES] },
 ];
 
 export default async function Panel({ children }: { children: React.ReactNode }) {

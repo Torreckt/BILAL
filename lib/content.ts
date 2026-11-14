@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { sql } from "./db";
-import { CONTENT_ROLES, getSession } from "./auth";
+import { getSession } from "./auth";
+import { CONTENT_ROLES } from "./roles";
 import { defaultLinks, type Links } from "./site";
 
 export type Service = {
@@ -42,14 +43,14 @@ const visible = (drafts: boolean) => (drafts ? sql`true` : sql`status = 'publish
 export const getServices = cache(
   (drafts = false) => sql<Service[]>`select * from services where ${visible(drafts)} order by position, title`,
 );
-export const getService = cache(async (slug: string, drafts = false) => {
+export const getService = cache(async (slug: string, drafts = false): Promise<Service | undefined> => {
   const [row] = await sql<Service[]>`select * from services where slug = ${slug} and ${visible(drafts)}`;
   return row;
 });
 export const getWorks = cache(
   (drafts = false) => sql<Work[]>`select * from works where ${visible(drafts)} order by position, updated_at desc`,
 );
-export const getWork = cache(async (slug: string, drafts = false) => {
+export const getWork = cache(async (slug: string, drafts = false): Promise<Work | undefined> => {
   const [row] = await sql<Work[]>`select * from works where slug = ${slug} and ${visible(drafts)}`;
   return row;
 });
@@ -57,17 +58,17 @@ export const getFaqs = cache(
   (drafts = false) => sql<Faq[]>`select * from faqs where ${visible(drafts)} order by position, question`,
 );
 
-/** How many of these slugs are published services (to reject quote requests naming unknown ones). */
-export async function publishedServiceCount(slugs: string[]) {
-  const [{ n }] = await sql<{ n: number }[]>`select count(*)::int as n from services where status = 'published' and slug in ${sql(slugs)}`;
-  return n;
-}
+/** Values the dashboard stores in the settings table, by key. */
+export type Settings = { links: Partial<Links>; notify_email: string; retention_days: number };
 
-export const getSetting = cache(async <T>(key: string, fallback: T): Promise<T> => {
-  const [row] = await sql<{ value: T }[]>`select value from settings where key = ${key}`;
-  return row ? row.value : fallback;
+/** A stored setting, or the fallback when it is missing or not the expected kind of value. */
+export const getSetting = cache(async <K extends keyof Settings>(key: K, fallback: Settings[K]): Promise<Settings[K]> => {
+  const [row] = await sql<{ value: unknown }[]>`select value from settings where key = ${key}`;
+  const value = row?.value;
+  const sameKind = typeof value === typeof fallback && (typeof value !== "object" || (value !== null && !Array.isArray(value)));
+  return sameKind ? (value as Settings[K]) : fallback;
 });
-export const getLinks = async (): Promise<Links> => ({ ...defaultLinks, ...(await getSetting<Partial<Links>>("links", {})) });
+export const getLinks = async (): Promise<Links> => ({ ...defaultLinks, ...(await getSetting("links", {})) });
 
 /** True when the URL asks for a preview and the visitor is a signed-in owner or editor. */
 export async function wantsPreview(searchParams: Promise<Record<string, string | string[] | undefined>>) {

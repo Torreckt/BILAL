@@ -1,6 +1,6 @@
 // Dashboard queries for customer requests. Public submission lives in lib/requests.ts.
 import { sql } from "../db";
-import type { ContactIntent } from "../intents";
+import { isContactIntent, isRequestStatus, type ContactIntent, type RequestStatus } from "../intents";
 import type { RequestRow } from "../requests";
 import { isIsoDate, isUuid } from "../validate";
 
@@ -22,7 +22,7 @@ export async function requestStats(userId: string) {
 }
 
 export const recentRequests = (limit: number) =>
-  sql<{ id: string; ref: string; type: string; status: string; name: string; created_at: Date }[]>`
+  sql<{ id: string; ref: string; type: ContactIntent; status: RequestStatus; name: string; created_at: Date }[]>`
     select id, ref, type, status, name, created_at from requests order by created_at desc limit ${limit}`;
 
 export async function countNewRequests() {
@@ -33,8 +33,8 @@ export async function countNewRequests() {
 /** The filters the requests page accepts in its query string; anything malformed is ignored. */
 export type RequestFilters = {
   q?: string;
-  type?: string;
-  status?: string;
+  type?: ContactIntent;
+  status?: RequestStatus;
   service?: string;
   assignee?: string;
   from?: string;
@@ -44,8 +44,19 @@ export type RequestFilters = {
   follow?: string;
 };
 
+const FILTER_KEYS = ["q", "service", "assignee", "from", "to", "open", "notify", "follow"] as const;
+
+/** Picks the known filters out of an untrusted query string; unknown keys and invalid type/status values are dropped. */
+export function parseRequestFilters(sp: Record<string, string | undefined>): RequestFilters {
+  const filters: RequestFilters = {};
+  for (const key of FILTER_KEYS) if (sp[key]) filters[key] = sp[key];
+  if (sp.type && isContactIntent(sp.type)) filters.type = sp.type;
+  if (sp.status && isRequestStatus(sp.status)) filters.status = sp.status;
+  return filters;
+}
+
 export type RequestListRow = {
-  id: string; ref: string; type: string; status: string; name: string; business: string | null;
+  id: string; ref: string; type: ContactIntent; status: RequestStatus; name: string; business: string | null;
   services: string[]; created_at: Date; assignee: string | null; notify_status: string;
 };
 
@@ -72,7 +83,7 @@ export async function listRequests(f: RequestFilters, page: number, pageSize: nu
   return { rows, total };
 }
 
-export async function getRequest(id: string) {
+export async function getRequest(id: string): Promise<RequestRow | undefined> {
   const [row] = await sql<RequestRow[]>`select * from requests where id = ${id}`;
   return row;
 }
@@ -84,12 +95,12 @@ export const requestNotes = (requestId: string) =>
 
 /** The fields an update needs to validate a change against. */
 export async function requestWorkflowState(id: string) {
-  const [row] = await sql<{ type: ContactIntent; status: string; assignee_id: string | null }[]>`
+  const [row] = await sql<{ type: ContactIntent; status: RequestStatus; assignee_id: string | null }[]>`
     select type, status, assignee_id from requests where id = ${id}`;
   return row;
 }
 
-export async function setRequestStatus(id: string, status: string) {
+export async function setRequestStatus(id: string, status: RequestStatus) {
   await sql`update requests set status = ${status}, updated_at = now(),
             closed_at = ${status === "closed" ? sql`now()` : null} where id = ${id}`;
 }

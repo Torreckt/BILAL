@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/auth";
+import { OWNER_ROLES } from "@/lib/roles";
 import { recentAudit } from "@/lib/audit";
 import { when } from "../../ui";
 
@@ -8,7 +9,7 @@ export const metadata: Metadata = { title: "سجل التغييرات" };
 const labels: Record<string, string> = {
   "login.success": "دخول ناجح", "login.failed": "محاولة دخول فاشلة", "login.locked": "قفل الحساب بعد محاولات فاشلة",
   "password.changed": "غيّر كلمة المرور",
-  "request.status": "غيّر حالة طلب", "request.assigned": "أسند طلب", "request.note": "أضاف ملاحظة على طلب", "request.deleted": "حذف طلب",
+  "request.status": "غيّر حالة طلب", "request.assigned": "أسند طلب", "request.note": "أضاف ملاحظة على طلب", "request.deleted": "حذف طلب", "request.notify_retried": "أعاد إرسال تنبيه طلب",
   "requests.purged": "حذف تلقائي لطلبات مغلقة قديمة",
   "service.published": "نشر خدمة", "service.saved_draft": "حفظ خدمة كمسودة", "service.deleted": "حذف خدمة",
   "work.published": "نشر عمل", "work.saved_draft": "حفظ عمل كمسودة", "work.deleted": "حذف عمل",
@@ -19,7 +20,7 @@ const labels: Record<string, string> = {
 };
 
 export default async function Audit() {
-  await requireUser("owner");
+  await requireUser(...OWNER_ROLES);
   const rows = await recentAudit(300);
   return (
     <>

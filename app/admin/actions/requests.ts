@@ -10,8 +10,9 @@ import {
 } from "@/lib/admin/requests";
 import { requestStaffName } from "@/lib/admin/users";
 import { audit } from "@/lib/audit";
-import { REQUEST_ROLES, requireUser } from "@/lib/auth";
-import { statusLabels, statusesFor } from "@/lib/intents";
+import { requireUser } from "@/lib/auth";
+import { REQUEST_ROLES, OWNER_ROLES } from "@/lib/roles";
+import { isRequestStatus, statusLabels, statusesFor } from "@/lib/intents";
 import { notifyRequest } from "@/lib/notify";
 import { isUuid } from "@/lib/validate";
 import { field, redirectWithMessage } from "./form";
@@ -28,7 +29,7 @@ export async function updateRequest(f: FormData) {
 
   const status = field(f, "status");
   if (status && status !== r.status) {
-    if (!statusesFor(r.type).includes(status)) redirectWithMessage(path, { error: "الحالة غير مناسبة لنوع الطلب." });
+    if (!isRequestStatus(status) || !statusesFor(r.type).includes(status)) redirectWithMessage(path, { error: "الحالة غير مناسبة لنوع الطلب." });
     await setRequestStatus(id, status);
     await audit(me, "request.status", "request", id, { from: statusLabels[r.status], to: statusLabels[status] });
   }
@@ -52,18 +53,17 @@ export async function updateRequest(f: FormData) {
 }
 
 export async function retryNotify(f: FormData) {
-  await requireUser(...REQUEST_ROLES);
+  const me = await requireUser(...REQUEST_ROLES);
   const id = field(f, "id");
   if (!isUuid(id)) redirectWithMessage("/admin/requests");
   await notifyRequest(id);
-  redirectWithMessage(
-    `/admin/requests/${id}`,
-    (await requestNotifyStatus(id)) === "sent" ? { ok: "تم إرسال التنبيه." } : { error: "فشل إرسال التنبيه مرة ثانية. راجع إعدادات البريد." },
-  );
+  const sent = (await requestNotifyStatus(id)) === "sent";
+  await audit(me, "request.notify_retried", "request", id, { sent });
+  redirectWithMessage(`/admin/requests/${id}`, sent ? { ok: "تم إرسال التنبيه." } : { error: "فشل إرسال التنبيه مرة ثانية. راجع إعدادات البريد." });
 }
 
 export async function deleteRequest(f: FormData) {
-  const me = await requireUser("owner");
+  const me = await requireUser(...OWNER_ROLES);
   const id = field(f, "id");
   if (!isUuid(id)) redirectWithMessage("/admin/requests");
   const ref = await deleteRequestRow(id);

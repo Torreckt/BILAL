@@ -5,7 +5,11 @@ import { field, fieldLines, publishState, redirectWithMessage } from "../app/adm
 import { JsonLd, breadcrumbs } from "../components/JsonLd";
 import { fingerprint, hashPassword, verifyPassword } from "../lib/crypto";
 import { riyadhToday } from "../lib/dates";
-import { intentLabel, statusesFor } from "../lib/intents";
+import { parseRequestFilters } from "../lib/admin/requests";
+import { reconcileWorkMedia } from "../lib/admin/work-media";
+import type { MediaItem } from "../lib/content";
+import { intentLabel, isContactIntent, isRequestStatus, statusesFor } from "../lib/intents";
+import { isRole } from "../lib/roles";
 import { parseRequest } from "../lib/requests";
 import { isEmailLike, isIsoDate, isSlug, isUuid } from "../lib/validate";
 
@@ -76,9 +80,39 @@ test("format checks accept what the dashboard stores and nothing looser", () => 
   assert.ok(isIsoDate("2026-11-14") && !isIsoDate("14/11/2026") && !isIsoDate(undefined));
 });
 
-test("intent labels name each request type and pass unknown values through", () => {
+test("intent labels name each request type; untrusted strings are checked before use", () => {
   assert.equal(intentLabel("quote"), "طلب عرض سعر");
-  assert.equal(intentLabel("something-else"), "something-else");
+  assert.ok(isContactIntent("partner") && !isContactIntent("something-else"));
+  assert.ok(isRequestStatus("quote_sent") && !isRequestStatus("deleted"));
+  assert.ok(isRole("editor") && !isRole("admin"));
+});
+
+test("request filters from the query string keep known keys and valid values only", () => {
+  assert.deepEqual(parseRequestFilters({ q: "سارة", type: "quote", status: "bogus", page: "2", evil: "1", open: "" }), { q: "سارة", type: "quote" });
+  assert.deepEqual(parseRequestFilters({ type: "nope", status: "closed", assignee: "none" }), { assignee: "none", status: "closed" });
+});
+
+test("saving a work's media: keep, retitle, remove, append, reorder, and derive the cover", () => {
+  const img = (src: string, alt?: string) => ({ type: "image" as const, src, w: 1, h: 1, alt });
+  const vid = (src: string, poster?: string) => ({ type: "video" as const, src, w: 1, h: 1, poster });
+  const existing: MediaItem[] = [vid("/media/v1.mp4"), img("/media/a.webp", "old alt"), img("/media/b.webp")];
+  const result = reconcileWorkMedia({
+    existing,
+    remove: ["/media/b.webp", "/media/not-there.webp"],
+    altFor: (i) => (i === 1 ? "new alt" : ""),
+    uploaded: [img("/media/c.webp")],
+    firstSrc: "/media/c.webp",
+  });
+  assert.deepEqual(result.media.map((m) => m.src), ["/media/c.webp", "/media/v1.mp4", "/media/a.webp"]);
+  assert.equal(result.media.find((m) => m.src === "/media/a.webp")!.alt, "new alt");
+  assert.equal(result.cover, "/media/c.webp", "the first image is the cover");
+  assert.equal(result.media.find((m) => m.type === "video")!.poster, "/media/c.webp", "posterless videos get the cover");
+  assert.deepEqual(result.removed, ["/media/b.webp"], "only media that existed is reported for deletion");
+  assert.equal(existing[0].poster, undefined, "the input list is not modified");
+
+  const videosOnly = reconcileWorkMedia({ existing: [vid("/media/v.mp4", "/media/p.webp")], remove: [], altFor: () => "", uploaded: [], firstSrc: "" });
+  assert.equal(videosOnly.cover, "/media/p.webp", "with no image, the first video's poster is the cover");
+  assert.equal(reconcileWorkMedia({ existing: [], remove: [], altFor: () => "", uploaded: [], firstSrc: "" }).cover, null);
 });
 
 test("form helpers trim, cut to length and split lines", () => {

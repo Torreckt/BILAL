@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { REQUEST_ROLES, requireUser } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
+import { REQUEST_ROLES, OWNER_ROLES } from "@/lib/roles";
 import { serviceTitles } from "@/lib/admin/content";
 import { getRequest, requestNotes } from "@/lib/admin/requests";
 import { listRequestStaff } from "@/lib/admin/users";
@@ -17,6 +18,7 @@ const actionText: Record<string, (m: Record<string, string>) => string> = {
   "request.status": (m) => `غيّر الحالة من «${m.from}» إلى «${m.to}»`,
   "request.assigned": (m) => `أسند الطلب إلى: ${m.to}`,
   "request.note": () => "أضاف ملاحظة",
+  "request.notify_retried": (m) => (String(m.sent) === "true" ? "أعاد إرسال التنبيه (وصل)" : "أعاد إرسال التنبيه (فشل)"),
 };
 
 export default async function RequestPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Search }) {
@@ -34,7 +36,7 @@ export default async function RequestPage({ params, searchParams }: { params: Pr
     ["نوع النشاط", r.sector],
     ["الخدمات", r.services.map(services.title).join("، ")],
     ["نوع الاجتماع", r.meeting_type],
-    ["اليوم المفضل", r.meeting_day && formatDay(new Date(r.meeting_day).toISOString().slice(0, 10))],
+    ["اليوم المفضل", r.meeting_day && formatDay(r.meeting_day)],
     ["الفترة المفضلة", r.meeting_time],
     ["الموضوع", r.subject],
     ["أُرسل من", r.source && <span dir="ltr">{r.source}</span>],
@@ -149,7 +151,7 @@ export default async function RequestPage({ params, searchParams }: { params: Pr
             </ul>
           </section>
 
-          {user.role === "owner" && (
+          {OWNER_ROLES.includes(user.role) && (
             <form className="adm-card adm-row" action={deleteRequest}>
               <input type="hidden" name="id" value={r.id} />
               <span className="adm-muted">حذف الطلب يمسح بيانات العميل نهائياً.</span>

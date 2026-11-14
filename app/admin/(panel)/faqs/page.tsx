@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { CONTENT_ROLES, requireUser } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
+import { CONTENT_ROLES } from "@/lib/roles";
 import { getFaqs, type Faq } from "@/lib/content";
 import { deleteContent, saveFaq } from "../../actions/content";
 import { PublishedBadge, Flash, type Search } from "../../ui";

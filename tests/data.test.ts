@@ -16,6 +16,10 @@ describe("data layer", { skip: !DB && "set TEST_DATABASE_URL to run" }, () => {
   let content: typeof import("../lib/admin/content");
   let events: typeof import("../lib/events");
   let audit: typeof import("../lib/audit");
+  let rateLimit: typeof import("../lib/rate-limit");
+  let requestsPublic: typeof import("../lib/requests");
+  let notify: typeof import("../lib/notify");
+  let siteContent: typeof import("../lib/content");
   let owner: string;
   let agent: string;
 
@@ -37,6 +41,10 @@ describe("data layer", { skip: !DB && "set TEST_DATABASE_URL to run" }, () => {
     content = await import("../lib/admin/content");
     events = await import("../lib/events");
     audit = await import("../lib/audit");
+    rateLimit = await import("../lib/rate-limit");
+    requestsPublic = await import("../lib/requests");
+    notify = await import("../lib/notify");
+    siteContent = await import("../lib/content");
     owner = (await users.insertUser("owner", "المالك", "owner", "x"))!;
     agent = (await users.insertUser("agent", "المتابع", "agent", "x"))!;
     await users.insertUser("editor", "المحرر", "editor", "x");
@@ -110,13 +118,21 @@ describe("data layer", { skip: !DB && "set TEST_DATABASE_URL to run" }, () => {
     assert.equal((await sql`select 1 from request_notes where request_id = ${id}`).length, 0, "notes go with the request");
   });
 
+  test("parallel wrong passwords are all counted (no lost updates)", async () => {
+    await users.clearFailedLogins(agent);
+    const results = await Promise.all([1, 2, 3, 4, 5].map(() => users.recordFailedLogin(agent)));
+    assert.equal(results.filter(Boolean).length, 1, "exactly one of five simultaneous failures locks the account");
+    assert.equal((await users.findActiveUserByUsername("agent"))!.locked, true);
+    await users.setPasswordHash(agent, "x");
+  });
+
   test("the fifth wrong password in a row locks the account", async () => {
     for (let i = 1; i <= 4; i++) {
       const u = (await users.findActiveUserByUsername("agent"))!;
-      assert.equal(await users.recordFailedLogin(u), false, `attempt ${i} doesn't lock`);
+      assert.equal(await users.recordFailedLogin(u.id), false, `attempt ${i} doesn't lock`);
     }
     const u = (await users.findActiveUserByUsername("agent"))!;
-    assert.equal(await users.recordFailedLogin(u), true);
+    assert.equal(await users.recordFailedLogin(u.id), true);
     assert.equal((await users.findActiveUserByUsername("agent"))!.locked, true);
     await users.setPasswordHash(agent, "new-hash");
     const reset = (await users.findActiveUserByUsername("agent"))!;
@@ -129,9 +145,10 @@ describe("data layer", { skip: !DB && "set TEST_DATABASE_URL to run" }, () => {
     await users.setRole(agent, "editor");
     assert.equal((await users.getUser(agent))!.role, "editor");
     assert.ok(!(await users.listRequestStaff()).some((s) => s.id === agent), "no longer offered for requests");
-    await users.toggleActive(agent);
-    assert.equal(await users.findActiveUserByUsername("agent"), undefined, "inactive accounts can't sign in");
-    await users.toggleActive(agent);
+    await users.setActive(agent, false);
+    await users.setActive(agent, false);
+    assert.equal(await users.findActiveUserByUsername("agent"), undefined, "inactive accounts can't sign in; repeating the change keeps it off");
+    await users.setActive(agent, true);
     await users.setRole(agent, "agent");
   });
 
@@ -159,15 +176,59 @@ describe("data layer", { skip: !DB && "set TEST_DATABASE_URL to run" }, () => {
     assert.equal(await content.getWorkById(workId!), undefined);
   });
 
+  test("calendar dates come back as YYYY-MM-DD text, not shifted Date objects", async () => {
+    const id = await addRequest({ type: "meeting", meeting_day: "2026-11-20" });
+    assert.equal((await requests.getRequest(id))!.meeting_day, "2026-11-20");
+  });
+
+  test("rate limits count per key within a window", async () => {
+    const key = `test:${randomUUID()}`;
+    const window = { limit: 2, windowSeconds: 600 };
+    const allowed = [];
+    for (let i = 0; i < 3; i++) allowed.push(await rateLimit.consumeRateLimit(key, window));
+    assert.deepEqual(allowed, [true, true, false]);
+    assert.equal(await rateLimit.consumeRateLimit(`${key}:other`, window), true, "another key has its own count");
+  });
+
+  test("a quote may only name published services", async () => {
+    await sql`delete from services`;
+    await content.saveContentRow("services", undefined, { slug: "ads", code: "ADS", title: "إعلانات", line: "x", status: "published" });
+    await content.saveContentRow("services", undefined, { slug: "draft-one", code: "D", title: "مسودة", line: "x" });
+    const quote = (services: string[]) => {
+      const parsed = requestsPublic.parseRequest({
+        idem: randomUUID(), type: "quote", name: "سارة", phone: "0501234567", business: "مقهى", message: "أبغى عرض سعر للإعلانات", services,
+      });
+      assert.ok(parsed.ok);
+      return requestsPublic.checkReferences(parsed.data);
+    };
+    assert.equal(await quote(["ads"]), null);
+    assert.deepEqual(await quote(["ads", "draft-one"]), { services: "اختر الخدمات من القائمة" });
+    assert.deepEqual(await quote(["made-up"]), { services: "اختر الخدمات من القائمة" });
+  });
+
+  test("a failed notification is recorded on the request instead of thrown", async () => {
+    const id = await addRequest();
+    await notify.notifyRequest(id); // no SMTP configured in tests
+    const [row] = await sql<{ notify_status: string; notify_attempts: number }[]>`select notify_status, notify_attempts from requests where id = ${id}`;
+    assert.deepEqual(row, { notify_status: "failed", notify_attempts: 1 });
+    await notify.notifyRequest(randomUUID()); // a missing request is ignored quietly
+  });
+
+  test("a stored setting of the wrong kind falls back to the default", async () => {
+    await sql`insert into settings (key, value) values ('notify_email', ${sql.json(42 as never)})
+              on conflict (key) do update set value = excluded.value`;
+    assert.equal(await siteContent.getSetting("notify_email", "team@test.local"), "team@test.local");
+  });
+
   test("settings upsert, events count by name, audit entries list newest first", async () => {
     await content.saveSetting("retention_days", 90);
     await content.saveSetting("retention_days", 30);
     const [{ value }] = await sql<{ value: number }[]>`select value from settings where key = 'retention_days'`;
     assert.equal(value, 30);
 
-    await events.recordEvent("whatsapp_click", "quote", "seo", "/");
-    await events.recordEvent("whatsapp_click", null, null, null);
-    await events.recordEvent("request_saved", "quote", null, null);
+    await events.recordEvent({ name: "whatsapp_click", requestType: "quote", service: "seo", source: "/" });
+    await events.recordEvent({ name: "whatsapp_click" });
+    await events.recordEvent({ name: "request_saved", requestType: "quote" });
     const count = await events.eventCounts(30);
     assert.equal(count("whatsapp_click"), 2);
     assert.equal(count("never"), 0);

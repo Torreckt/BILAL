@@ -1,8 +1,9 @@
 "use server";
 
-import { ROLES, getUser, insertUser, setPasswordHash, setRole, toggleActive } from "@/lib/admin/users";
+import { getUser, insertUser, setActive, setPasswordHash, setRole } from "@/lib/admin/users";
 import { audit } from "@/lib/audit";
-import { endSessions, requireUser, type Role } from "@/lib/auth";
+import { endSessions, requireUser } from "@/lib/auth";
+import { OWNER_ROLES, isRole } from "@/lib/roles";
 import { hashPassword } from "@/lib/crypto";
 import { MIN_PASSWORD, isUsername, isUuid } from "@/lib/validate";
 import { field, redirectWithMessage } from "./form";
@@ -10,12 +11,12 @@ import { field, redirectWithMessage } from "./form";
 // Account management: owner only.
 
 export async function createUser(f: FormData) {
-  const me = await requireUser("owner");
+  const me = await requireUser(...OWNER_ROLES);
   const username = field(f, "username", 60).toLowerCase();
   const name = field(f, "name", 80);
-  const role = field(f, "role") as Role;
+  const role = field(f, "role");
   const password = field(f, "password", 200);
-  if (!name || !ROLES.includes(role)) redirectWithMessage("/admin/users", { error: "عبّ الاسم واسم المستخدم والدور." });
+  if (!name || !isRole(role)) redirectWithMessage("/admin/users", { error: "عبّ الاسم واسم المستخدم والدور." });
   if (!isUsername(username)) {
     redirectWithMessage("/admin/users", { error: "اسم المستخدم: حروف إنجليزية صغيرة وأرقام فقط (ويُسمح بـ . _ -)، من 3 إلى 40 حرف." });
   }
@@ -27,7 +28,7 @@ export async function createUser(f: FormData) {
 }
 
 export async function updateUser(f: FormData) {
-  const me = await requireUser("owner");
+  const me = await requireUser(...OWNER_ROLES);
   const id = field(f, "id");
   const op = field(f, "op");
   if (!isUuid(id)) redirectWithMessage("/admin/users");
@@ -37,21 +38,24 @@ export async function updateUser(f: FormData) {
   if (id === me.id && op !== "password") redirectWithMessage("/admin/users", { error: "ما تقدر تعدّل صلاحيات حسابك بنفسك." });
 
   if (op === "role") {
-    const role = field(f, "role") as Role;
-    if (!ROLES.includes(role)) redirectWithMessage("/admin/users");
+    const role = field(f, "role");
+    if (!isRole(role)) redirectWithMessage("/admin/users");
     await setRole(id, role);
     await endSessions(id);
     await audit(me, "user.role", "user", id, { username: u.username, from: u.role, to: role });
-  } else if (op === "toggle") {
-    await toggleActive(id);
+  } else if (op === "active") {
+    const active = field(f, "active") === "1";
+    await setActive(id, active);
     await endSessions(id);
-    await audit(me, u.active ? "user.disabled" : "user.enabled", "user", id, { username: u.username });
+    await audit(me, active ? "user.enabled" : "user.disabled", "user", id, { username: u.username });
   } else if (op === "password") {
     const password = field(f, "password", 200);
     if (password.length < MIN_PASSWORD) redirectWithMessage("/admin/users", { error: `كلمة المرور لازم ${MIN_PASSWORD} حرف أو أكثر.` });
     await setPasswordHash(id, await hashPassword(password));
     if (id !== me.id) await endSessions(id);
     await audit(me, "user.password_reset", "user", id, { username: u.username });
+  } else {
+    redirectWithMessage("/admin/users", { error: "عملية غير معروفة." });
   }
   redirectWithMessage("/admin/users", { ok: "تم التحديث." });
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { CONTENT_ROLES, requireUser } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
+import { CONTENT_ROLES } from "@/lib/roles";
 import { getWorks } from "@/lib/content";
 import { PublishedBadge, Flash, type Search } from "../../ui";
 

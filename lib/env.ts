@@ -13,6 +13,8 @@ export const env = {
   get appSecret() {
     return appSecret();
   },
+  // Builds import the database module without connecting, so a missing URL only fails on the first query.
+  databaseUrl: process.env.DATABASE_URL ?? "postgres://127.0.0.1/unset",
   siteUrl: (process.env.SITE_URL ?? "http://localhost:3000").replace(/\/+$/, ""),
   // Staging: keep search engines out.
   noindex: process.env.SITE_NOINDEX === "1",

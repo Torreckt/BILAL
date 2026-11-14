@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { CONTENT_ROLES, requireUser } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
+import { CONTENT_ROLES } from "@/lib/roles";
 import { getServiceById } from "@/lib/admin/content";
 import { loadEditable } from "../../../editable";
 import { deleteContent, saveService } from "../../../actions/content";

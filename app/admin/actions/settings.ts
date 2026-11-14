@@ -2,7 +2,8 @@
 
 import { saveSetting } from "@/lib/admin/content";
 import { audit } from "@/lib/audit";
-import { CONTENT_ROLES, requireUser } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
+import { CONTENT_ROLES, OWNER_ROLES } from "@/lib/roles";
 import { isEmailLike } from "@/lib/validate";
 import { field, redirectWithMessage } from "./form";
 
@@ -25,7 +26,7 @@ export async function saveLinks(f: FormData) {
 
 /** Notification email and data retention: owner only. */
 export async function saveSystem(f: FormData) {
-  const me = await requireUser("owner");
+  const me = await requireUser(...OWNER_ROLES);
   const email = field(f, "notify_email", 120);
   const days = Number(field(f, "retention_days"));
   if (!isEmailLike(email)) redirectWithMessage("/admin/settings", { error: "بريد التنبيهات غير صحيح." });

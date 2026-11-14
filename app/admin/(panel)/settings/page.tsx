@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { CONTENT_ROLES, requireUser } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
+import { CONTENT_ROLES, OWNER_ROLES } from "@/lib/roles";
 import { getLinks, getSetting } from "@/lib/content";
 import { env } from "@/lib/env";
 import { saveLinks, saveSystem } from "../../actions/settings";
@@ -37,7 +38,7 @@ export default async function Settings({ searchParams }: { searchParams: Search 
         <button className="adm-btn adm-btn--red" type="submit">حفظ الروابط</button>
       </form>
 
-      {user.role === "owner" && (
+      {OWNER_ROLES.includes(user.role) && (
         <form className="adm-card adm-stack" action={saveSystem}>
           <h2>إعدادات النظام</h2>
           <div className="adm-grid">

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { REQUEST_ROLES, requireUser } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
+import { REQUEST_ROLES } from "@/lib/roles";
 import { serviceTitles } from "@/lib/admin/content";
-import { listRequests, type RequestFilters } from "@/lib/admin/requests";
+import { listRequests, parseRequestFilters } from "@/lib/admin/requests";
 import { listRequestStaff } from "@/lib/admin/users";
 import { contactIntents, intentLabel, statusLabels } from "@/lib/intents";
 import { Badge, Flash, statusTone, when, type Search } from "../../ui";
@@ -13,13 +14,14 @@ export default async function Requests({ searchParams }: { searchParams: Search 
   await requireUser(...REQUEST_ROLES);
   const sp = await searchParams;
   const page = Math.max(1, Number(sp.page) || 1);
+  const filters = parseRequestFilters(sp);
   const [{ rows, total }, services, staff] = await Promise.all([
-    listRequests(sp as RequestFilters, page, PAGE),
+    listRequests(filters, page, PAGE),
     serviceTitles(),
     listRequestStaff(),
   ]);
   const title = services.title;
-  const pageLink = (p: number) => `?${new URLSearchParams({ ...(sp as Record<string, string>), page: String(p) })}`;
+  const pageLink = (p: number) => `?${new URLSearchParams({ ...filters, page: String(p) })}`;
   const pages = Math.ceil(total / PAGE);
 
   return (
