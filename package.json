@@ -11,6 +11,7 @@
     "admin:create": "tsx scripts/create-admin.ts",
     "retention": "tsx scripts/retention.ts",
     "test": "tsx --test tests/unit.test.ts",
+    "test:data": "tsx --test tests/data.test.ts",
     "test:e2e": "node tests/e2e.mjs"
   },
   "dependencies": {

@@ -178,6 +178,7 @@ docker compose run --rm -v "$PWD/backups:/backups" app tar -czf /backups/uploads
 npm test                 # اختبارات سريعة بدون قاعدة بيانات
 
 npm run build
+TEST_DATABASE_URL=postgres://.../mainstream_test npm run test:data  # استعلامات اللوحة (lib/admin) على قاعدة حقيقية — القاعدة تنمسح!
 TEST_DATABASE_URL=postgres://.../mainstream_test npm run test:e2e   # القاعدة تنمسح!
 ```
 
@@ -197,7 +198,7 @@ lib/admin/         استعلامات اللوحة (requests, users, content) �
 db/migrations/     ملفات SQL للجداول          db/seed-data.ts  المحتوى الأولي
 scripts/           migrate, seed, create-admin, retention, backup.sh, restore.sh
 proxy.ts           ترويسة CSP لكل طلب وحماية أولية لمسار /admin
-tests/             unit.test.ts و e2e.mjs
+tests/             unit.test.ts و data.test.ts (طبقة البيانات) و e2e.mjs
 deploy/            صفحة تحويل رابط GitHub Pages القديم
 ```
 

@@ -117,10 +117,11 @@ async function signIn(email) {
   await page.click('button[type="submit"]');
   await page.waitForURL("**/admin/mfa");
   const secret = (await page.textContent("code")).trim();
-  await page.fill('input[name="code"]', totp(secret));
+  const usedCode = totp(secret);
+  await page.fill('input[name="code"]', usedCode);
   await page.click('button:has-text("تأكيد")');
   await page.waitForURL(`${BASE}/admin`);
-  return { ctx, page, secret };
+  return { ctx, page, secret, usedCode };
 }
 
 // Submit a dashboard form and wait until the server action has answered and the page has settled.
@@ -274,7 +275,8 @@ try {
   await hp.fill('input[name="code"]', "000000");
   await act(hp, 'button:has-text("تأكيد")');
   check("wrong verification code is refused", hp.url().includes("error="));
-  await hp.fill('input[name="code"]', totp(owner.secret));
+  // Resubmit the exact code the owner already signed in with; a freshly computed one may fall in a newer 30 s step.
+  await hp.fill('input[name="code"]', owner.usedCode);
   await act(hp, 'button:has-text("تأكيد")');
   check("a verification code cannot be used twice", hp.url().includes("error="), hp.url());
 
