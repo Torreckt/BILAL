@@ -3,6 +3,7 @@ import { ServiceCards } from "@/components/ServiceCards";
 import { EyeTracker } from "@/components/EyeTracker";
 import { Eye, Wave } from "@/components/Eye";
 import { Contact } from "@/components/Contact";
+import { Process } from "@/components/Process";
 import { JsonLd } from "@/components/Prose";
 import { WorkCard } from "@/components/Works";
 import { getFaqs, getLinks, getServices, getWorks, wantsPreview, type Faq as FaqRow, type Service, type Work } from "@/lib/content";
@@ -78,41 +79,6 @@ function Watchlist({ works, preview }: { works: Work[]; preview: boolean }) {
             <WorkCard key={w.id} work={w} preview={preview} />
           ))}
         </ul>
-      </div>
-    </section>
-  );
-}
-
-function Process() {
-  const steps = [
-    { t: "ترسل طلبك", d: "من النموذج أو واتساب. نتواصل معك ونحدد موعد اجتماع يناسبك." },
-    { t: "نفهم نشاطك", d: "نجلس معك، نشوف جمهورك ومنافسينك، ونبني خطة الشهر." },
-    { t: "نشغّل الضجة", d: "الفريق يبدأ: محتوى، تصوير، إعلانات. وآخر الشهر تقرير أداء واضح." },
-  ];
-  return (
-    <section id="process" className="section process" aria-labelledby="process-title">
-      <p className="ghost ghost--process" aria-hidden="true">
-        ON AIR
-      </p>
-      <div className="wrap">
-        <div className="process__head">
-          <h2 id="process-title" className="display display--md">
-            كيف نشتغل
-          </h2>
-          <p className="tag tag--ink">من أول رسالة.. لأول ضجة</p>
-        </div>
-        <ol className="process__line">
-          {steps.map((s, i) => (
-            <li key={s.t} className="process__step">
-              <Wave className="process__wave" />
-              <span className="process__num" dir="ltr">
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <h3>{s.t}</h3>
-              <p>{s.d}</p>
-            </li>
-          ))}
-        </ol>
       </div>
     </section>
   );

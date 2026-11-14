@@ -62,7 +62,7 @@ export const contactIntents: { id: ContactIntent; label: string; noun: string; e
 ];
 export const intentLabel = (t: string) => contactIntents.find((c) => c.id === t)?.noun ?? t;
 
-export const meetingTypes = ["اجتماع أونلاين", "اجتماع حضوري", "مكالمة هاتفية"];
+export const meetingTypes = ["اجتماع أونلاين", "مكالمة هاتفية"];
 export const meetingTimes = ["الصباح", "الظهر", "العصر", "المساء"];
 
 export const statusLabels: Record<string, string> = {

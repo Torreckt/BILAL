@@ -42,7 +42,7 @@ test("a request needs a phone or an email, and both are checked", () => {
 });
 
 test("meeting days are checked against today's date in Riyadh", () => {
-  const meeting = (day: string) => parseRequest({ idem, name: "سارة", phone: "0501234567", type: "meeting", meetingType: "اجتماع حضوري", day });
+  const meeting = (day: string) => parseRequest({ idem, name: "سارة", phone: "0501234567", type: "meeting", meetingType: "مكالمة هاتفية", day });
   assert.ok(meeting(riyadhToday()).ok);
   assert.ok(meeting(riyadhToday(30)).ok);
   assert.ok(!meeting(riyadhToday(-1)).ok);

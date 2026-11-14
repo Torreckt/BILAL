@@ -189,11 +189,7 @@ export function ContactForm({ services, whatsapp, initialIntent = "meeting", ini
       </span>
     ) : null;
   const aria = (name: string) => ({ "aria-invalid": !!errors[name] || undefined, "aria-describedby": errors[name] ? `err-${name}` : undefined });
-  const label = (text: string, optional = false) => (
-    <span className="form__label">
-      {text} {optional && <em>(اختياري)</em>}
-    </span>
-  );
+  const label = (text: string) => <span className="form__label">{text}</span>;
   // One-tap choices instead of dropdowns: a row of radio chips.
   const choices = (name: string, options: string[], required = false) => (
     <div className="chips">
@@ -214,14 +210,14 @@ export function ContactForm({ services, whatsapp, initialIntent = "meeting", ini
   }[intent];
   const message = (
     <label className="field">
-      {label(messageLabel, intent === "meeting")}
+      {label(messageLabel)}
       <textarea name="message" rows={3} maxLength={2000} required={intent !== "meeting"} placeholder={messagePlaceholder} {...aria("message")} />
       {err("message")}
     </label>
   );
   const business = (text: string, required: boolean) => (
     <label className="field">
-      {label(text, !required)}
+      {label(text)}
       <input name="business" required={required} maxLength={100} autoComplete="organization" {...aria("business")} />
       {err("business")}
     </label>
@@ -290,7 +286,7 @@ export function ContactForm({ services, whatsapp, initialIntent = "meeting", ini
           </fieldset>
           <div className="field">
             <label className="form__label" htmlFor="contact-day">
-              اليوم المفضل <em>(اختياري)</em>
+              اليوم المفضل
             </label>
             <div className="chips">
               {[
@@ -316,12 +312,10 @@ export function ContactForm({ services, whatsapp, initialIntent = "meeting", ini
             {err("day")}
           </div>
           <fieldset className="field">
-            <legend className="form__label">
-              الفترة المفضلة <em>(اختياري)</em>
-            </legend>
+            <legend className="form__label">الفترة المفضلة</legend>
             {choices("time", meetingTimes)}
           </fieldset>
-          <p className="form__hint">هذا طلب اجتماع، والموعد يتأكد بعد ما يتواصل معك الفريق. الأوقات بتوقيت الرياض.</p>
+          <p className="form__hint">هذا طلب اجتماع، والموعد يتأكد بعد ما يتواصل معك الفريق.</p>
         </>
       )}
 
@@ -346,27 +340,19 @@ export function ContactForm({ services, whatsapp, initialIntent = "meeting", ini
 
       {intent !== "meeting" && message}
 
-      {/* Optional extras stay folded so the form reads short. */}
-      {(intent === "meeting" || intent === "quote") && (
-        <details className="form__extra">
-          <summary>أضف تفاصيل (اختياري)</summary>
-          <div className="form__extra-body">
-            {intent === "meeting" && business("اسم النشاط", false)}
-            {intent === "meeting" && message}
-            {intent === "quote" && (
-              <label className="field">
-                {label("نوع النشاط", true)}
-                <select name="sector" defaultValue="">
-                  <option value="">اختر نوع نشاطك</option>
-                  {sectors.map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
-                  <option>غير ذلك</option>
-                </select>
-              </label>
-            )}
-          </div>
-        </details>
+      {intent === "meeting" && business("اسم النشاط", false)}
+      {intent === "meeting" && message}
+      {intent === "quote" && (
+        <label className="field">
+          {label("نوع النشاط")}
+          <select name="sector" defaultValue="">
+            <option value="">اختر نوع نشاطك</option>
+            {sectors.map((s) => (
+              <option key={s}>{s}</option>
+            ))}
+            <option>غير ذلك</option>
+          </select>
+        </label>
       )}
 
       {errors.form && (
