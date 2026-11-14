@@ -14,8 +14,8 @@ const roleHelp: Record<Role, string> = {
 
 export default async function Users({ searchParams }: { searchParams: Search }) {
   const me = await requireUser("owner");
-  const users = await sql<{ id: string; email: string; name: string; role: Role; active: boolean; totp_enabled: boolean }[]>`
-    select id, email, name, role, active, totp_enabled from users order by created_at`;
+  const users = await sql<{ id: string; username: string; name: string; role: Role; active: boolean }[]>`
+    select id, username, name, role, active from users order by created_at`;
   return (
     <>
       <h1 className="adm-title">المستخدمون والصلاحيات</h1>
@@ -35,10 +35,11 @@ export default async function Users({ searchParams }: { searchParams: Search }) 
       {users.map((u) => (
         <section key={u.id} className="adm-card adm-stack">
           <h2>
-            {u.name} <Badge>{roleLabels[u.role]}</Badge> {!u.active && <Badge tone="red">موقوف</Badge>}{" "}
-            <Badge tone={u.totp_enabled ? "green" : "paper"}>{u.totp_enabled ? "التحقق بخطوتين مفعّل" : "ما فعّل التحقق بعد"}</Badge>
+            {u.name} <Badge>{roleLabels[u.role]}</Badge> {!u.active && <Badge tone="red">موقوف</Badge>}
           </h2>
-          <p className="adm-muted" dir="ltr">{u.email}</p>
+          <p className="adm-muted">
+            اسم المستخدم: <span dir="ltr">{u.username}</span>
+          </p>
           {u.id === me.id ? (
             <p className="adm-muted">هذا حسابك. غيّر كلمة المرور من صفحة «حسابي».</p>
           ) : (
@@ -58,11 +59,6 @@ export default async function Users({ searchParams }: { searchParams: Search }) 
                 <input type="hidden" name="op" value="toggle" />
                 <button className="adm-btn" type="submit">{u.active ? "أوقف الحساب" : "فعّل الحساب"}</button>
               </form>
-              <form action={updateUser}>
-                <input type="hidden" name="id" value={u.id} />
-                <input type="hidden" name="op" value="mfa" />
-                <button className="adm-btn" type="submit">صفّر التحقق بخطوتين</button>
-              </form>
               <form className="adm-row" action={updateUser}>
                 <input type="hidden" name="id" value={u.id} />
                 <input type="hidden" name="op" value="password" />
@@ -76,15 +72,15 @@ export default async function Users({ searchParams }: { searchParams: Search }) 
 
       <form className="adm-card adm-stack" action={createUser}>
         <h2>أضف مستخدم</h2>
-        <p className="adm-muted">ما فيه تسجيل عام. الحسابات ينشئها المالك فقط من هنا.</p>
+        <p className="adm-muted">ما فيه تسجيل عام. أنت تنشئ اسم المستخدم وكلمة المرور لكل موظف وتعطيه إياها.</p>
         <div className="adm-grid">
           <label className="adm-field">
             <span>الاسم</span>
             <input name="name" required maxLength={80} />
           </label>
           <label className="adm-field">
-            <span>الإيميل</span>
-            <input name="email" type="email" required dir="ltr" autoComplete="off" />
+            <span>اسم المستخدم <em>(إنجليزي، مثل ahmed)</em></span>
+            <input name="username" required minLength={3} maxLength={40} pattern="[a-z0-9][a-z0-9._\-]{2,39}" dir="ltr" autoComplete="off" autoCapitalize="none" />
           </label>
           <label className="adm-field">
             <span>الدور</span>
@@ -95,7 +91,7 @@ export default async function Users({ searchParams }: { searchParams: Search }) 
             </select>
           </label>
           <label className="adm-field">
-            <span>كلمة مرور مؤقتة <em>(12 حرف أو أكثر)</em></span>
+            <span>كلمة المرور <em>(12 حرف أو أكثر)</em></span>
             <input name="password" type="password" required minLength={12} dir="ltr" autoComplete="new-password" />
           </label>
         </div>

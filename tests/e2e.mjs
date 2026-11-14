@@ -2,7 +2,6 @@
 // Needs: `npm run build` done, and TEST_DATABASE_URL pointing at a throwaway database (it is wiped).
 // Usage: TEST_DATABASE_URL=postgres://... npm run test:e2e
 import { execFileSync, spawn } from "node:child_process";
-import { createHmac } from "node:crypto";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
@@ -46,10 +45,10 @@ await sql`drop schema public cascade`;
 await sql`create schema public`;
 run("scripts/migrate.ts");
 run("scripts/seed.ts");
-run("scripts/create-admin.ts", "owner@test.local", "المالك", "owner");
-run("scripts/create-admin.ts", "agent@test.local", "مسؤول المتابعة", "agent");
-run("scripts/create-admin.ts", "editor@test.local", "محرر المحتوى", "editor");
-run("scripts/create-admin.ts", "lock@test.local", "حساب القفل", "agent");
+run("scripts/create-admin.ts", "owner", "المالك", "owner");
+run("scripts/create-admin.ts", "agent", "مسؤول المتابعة", "agent");
+run("scripts/create-admin.ts", "editor", "محرر المحتوى", "editor");
+run("scripts/create-admin.ts", "lockme", "حساب القفل", "agent");
 
 const server = spawn(process.execPath, ["node_modules/next/dist/bin/next", "start", "-p", String(PORT)], { env, stdio: "pipe" });
 let serverLog = "";
@@ -92,35 +91,19 @@ function startSmtp() {
   });
 }
 
-function totp(secret) {
-  const A = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-  let bits = "";
-  for (const c of secret) bits += A.indexOf(c).toString(2).padStart(5, "0");
-  const key = Buffer.from(bits.match(/.{8}/g).map((b) => parseInt(b, 2)));
-  const msg = Buffer.alloc(8);
-  msg.writeBigUInt64BE(BigInt(Math.floor(Date.now() / 30000)));
-  const h = createHmac("sha1", key).update(msg).digest();
-  const o = h[19] & 15;
-  return String((h.readUInt32BE(o) & 0x7fffffff) % 1e6).padStart(6, "0");
-}
-
 const browser = await chromium.launch();
 let ipCounter = 10;
 const newContext = (opts = {}) => browser.newContext({ ...opts, extraHTTPHeaders: { "x-forwarded-for": `10.0.0.${ipCounter++}` } });
 
-async function signIn(email) {
+async function signIn(username) {
   const ctx = await newContext({ viewport: { width: 1280, height: 900 } });
   const page = await ctx.newPage();
   await page.goto(`${BASE}/admin/login`);
-  await page.fill('input[name="email"]', email);
+  await page.fill('input[name="username"]', username);
   await page.fill('input[name="password"]', PASSWORD);
   await page.click('button[type="submit"]');
-  await page.waitForURL("**/admin/mfa");
-  const secret = (await page.textContent("code")).trim();
-  await page.fill('input[name="code"]', totp(secret));
-  await page.click('button:has-text("تأكيد")');
   await page.waitForURL(`${BASE}/admin`);
-  return { ctx, page, secret };
+  return { ctx, page };
 }
 
 // Submit a dashboard form and wait until the server action has answered and the page has settled.
@@ -169,7 +152,7 @@ try {
   check("mail server down: request kept, notification marked failed", afterNotify.notify_status === "failed" && !!afterNotify.notify_error);
 
   /* ───── 2. The owner opens the same request and changes its status ───── */
-  const owner = await signIn("owner@test.local");
+  const owner = await signIn("owner");
   await owner.page.goto(`${BASE}/admin/requests?q=${ref}`);
   await owner.page.click(`a:has-text("${ref}")`);
   check("admin sees the customer's details", (await owner.page.textContent(".adm-facts")).includes("عميل تجربة الجوال"));
@@ -256,45 +239,34 @@ try {
   check("signed-out visit to a request redirects to sign-in", ap.url().endsWith("/admin/login") && !(await ap.content()).includes("عميل تجربة الجوال"));
   const adminHeaders = await fetch(`${BASE}/admin/login`);
   check("dashboard pages are marked noindex and not cached", adminHeaders.headers.get("x-robots-tag")?.includes("noindex") && adminHeaders.headers.get("cache-control") === "no-store");
-  await ap.fill('input[name="email"]', "owner@test.local");
+  await ap.fill('input[name="username"]', "owner");
   await ap.fill('input[name="password"]', "wrong-password-000");
   await act(ap, 'button[type="submit"]');
   check("wrong password is refused with one generic message", ap.url().includes("error=") && (await ap.isVisible(".adm-flash--error")));
 
-  // Password alone is not enough: without the code the dashboard stays shut.
-  const half = await newContext();
-  const hp = await half.newPage();
-  await hp.goto(`${BASE}/admin/login`);
-  await hp.fill('input[name="email"]', "owner@test.local");
-  await hp.fill('input[name="password"]', PASSWORD);
-  await hp.click('button[type="submit"]');
-  await hp.waitForURL("**/admin/mfa");
-  await hp.goto(`${BASE}/admin/requests`);
-  check("password without the second step cannot open the dashboard", hp.url().endsWith("/admin/mfa"));
-  await hp.fill('input[name="code"]', "000000");
-  await act(hp, 'button:has-text("تأكيد")');
-  check("wrong verification code is refused", hp.url().includes("error="));
-  await hp.fill('input[name="code"]', totp(owner.secret));
-  await act(hp, 'button:has-text("تأكيد")');
-  check("a verification code cannot be used twice", hp.url().includes("error="), hp.url());
+  // A username that does not exist gets the same answer as a wrong password.
+  await ap.fill('input[name="username"]', "nobody-here");
+  await ap.fill('input[name="password"]', PASSWORD);
+  await act(ap, 'button[type="submit"]');
+  check("unknown username is refused the same way", ap.url().includes("error=") && ap.url().includes("/admin/login"));
 
   // Lockout after repeated wrong passwords
   const lock = await newContext();
   const lp = await lock.newPage();
   for (let i = 0; i < 5; i++) {
     await lp.goto(`${BASE}/admin/login`);
-    await lp.fill('input[name="email"]', "lock@test.local");
+    await lp.fill('input[name="username"]', "lockme");
     await lp.fill('input[name="password"]', `wrong-password-${i}`);
     await act(lp, 'button[type="submit"]');
   }
   await lp.goto(`${BASE}/admin/login`);
-  await lp.fill('input[name="email"]', "lock@test.local");
+  await lp.fill('input[name="username"]', "lockme");
   await lp.fill('input[name="password"]', PASSWORD);
   await act(lp, 'button[type="submit"]');
   check("account locks after five wrong passwords", lp.url().includes("error="));
 
-  const agent = await signIn("agent@test.local");
-  const editor = await signIn("editor@test.local");
+  const agent = await signIn("agent");
+  const editor = await signIn("editor");
   await agent.page.goto(`${BASE}/admin/requests/${saved.id}`);
   check("agent can open requests", (await agent.page.textContent(".adm-main")).includes("عميل تجربة الجوال"));
   check("agent has no delete button", !(await agent.page.isVisible('button:has-text("حذف الطلب")')));
@@ -330,7 +302,17 @@ try {
 
   // Owner: permission changes are logged; public sign-up does not exist.
   await owner.page.goto(`${BASE}/admin/users`);
-  const lockCard = owner.page.locator("section", { hasText: "lock@test.local" });
+  // The owner creates a username and password for an employee, who can then sign in with them.
+  await owner.page.fill('form:has(button:has-text("أنشئ الحساب")) input[name="name"]', "موظف جديد");
+  await owner.page.fill('form:has(button:has-text("أنشئ الحساب")) input[name="username"]', "new.staff");
+  await owner.page.selectOption('form:has(button:has-text("أنشئ الحساب")) select[name="role"]', "agent");
+  await owner.page.fill('form:has(button:has-text("أنشئ الحساب")) input[name="password"]', PASSWORD);
+  await act(owner.page, 'button:has-text("أنشئ الحساب")');
+  const staff = await signIn("new.staff");
+  await staff.page.goto(`${BASE}/admin/requests`);
+  check("owner-created username can sign in and has its role", staff.page.url().endsWith("/admin/requests") && (await sql`select 1 from audit_log where action = 'user.created'`).length === 1);
+  await owner.page.goto(`${BASE}/admin/users`);
+  const lockCard = owner.page.locator("section", { hasText: "lockme" });
   await lockCard.locator('select[name="role"]').selectOption("editor");
   await act(owner.page, lockCard.locator('button:has-text("غيّر الدور")'));
   const roleLog = await sql`select meta from audit_log where action = 'user.role'`;

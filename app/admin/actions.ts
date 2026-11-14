@@ -15,7 +15,7 @@ import {
   type Role,
 } from "@/lib/auth";
 import type { MediaItem } from "@/lib/content";
-import { decrypt, fingerprint, hashPassword, randomToken, verifyPassword, verifyTotp } from "@/lib/crypto";
+import { fingerprint, hashPassword, randomToken, verifyPassword } from "@/lib/crypto";
 import { sql } from "@/lib/db";
 import { notifyRequest } from "@/lib/notify";
 import { statusLabels, statusesFor, type ContactIntent } from "@/lib/site";
@@ -40,14 +40,14 @@ const MIN_PASSWORD = 12;
 let dummyHash: Promise<string> | undefined;
 
 export async function login(f: FormData) {
-  const email = str(f, "email", 120).toLowerCase();
+  const username = str(f, "username", 60).toLowerCase();
   const password = str(f, "password", 200);
-  const fail = () => to("/admin/login", { error: "الإيميل أو كلمة المرور غير صحيحة، أو الحساب مقفل مؤقتاً." });
+  const fail = () => to("/admin/login", { error: "اسم المستخدم أو كلمة المرور غير صحيحة، أو الحساب مقفل مؤقتاً." });
   if (!(await allow(`login:${await clientKey()}`, 10, 600))) to("/admin/login", { error: "محاولات كثيرة. جرّب بعد عشر دقايق." });
 
   const [user] = await sql<{ id: string; name: string; password_hash: string; locked: boolean; failed_logins: number }[]>`
     select id, name, password_hash, failed_logins, coalesce(locked_until > now(), false) as locked
-    from users where email = ${email} and active`;
+    from users where username = ${username} and active`;
   // Always spend the same time hashing, so a missing account can't be told apart from a wrong password.
   const ok = await verifyPassword(password, user?.password_hash ?? (await (dummyHash ??= hashPassword(randomToken()))));
   if (!user || user.locked) fail();
@@ -59,34 +59,14 @@ export async function login(f: FormData) {
     fail();
   }
   await sql`update users set failed_logins = 0, locked_until = null where id = ${user.id}`;
-  await createSession(user.id); // password only: opens nothing until the second step passes
-  to("/admin/mfa");
+  await createSession(user.id);
+  await audit(user, "login.success", "user", user.id);
+  to("/admin");
 }
 
 export async function logout() {
   await destroySession();
   to("/admin/login");
-}
-
-export async function verifyMfa(f: FormData) {
-  const user = await getSession();
-  if (!user) to("/admin/login");
-  const me = user!;
-  if (!(await allow(`mfa:${me.id}`, 6, 300))) to("/admin/mfa", { error: "محاولات كثيرة. انتظر خمس دقايق." });
-  const [row] = await sql<{ totp_secret: string | null; totp_last_step: string }[]>`
-    select totp_secret, totp_last_step from users where id = ${me.id}`;
-  const step = row.totp_secret ? verifyTotp(decrypt(row.totp_secret), str(f, "code", 12), Number(row.totp_last_step)) : null;
-  if (!step) {
-    await audit(me, "mfa.failed", "user", me.id);
-    to("/admin/mfa", { error: "الرمز غير صحيح أو منتهي. جرّب الرمز الجديد من التطبيق." });
-  }
-  // Each code works once. Then swap the half-open session for a fresh, fully signed-in one.
-  await sql`update users set totp_enabled = true, totp_last_step = ${step} where id = ${me.id}`;
-  await destroySession();
-  await createSession(me.id);
-  await sql`update sessions set mfa_ok = true where token_hash = ${await sessionTokenHash()}`;
-  await audit(me, me.totp_enabled ? "login.success" : "mfa.enabled", "user", me.id);
-  to("/admin");
 }
 
 /* ───────── My account ───────── */
@@ -314,20 +294,23 @@ export async function saveSystem(f: FormData) {
 
 const ROLES: Role[] = ["owner", "agent", "editor"];
 
+const USERNAME = /^[a-z0-9][a-z0-9._-]{2,39}$/;
+
 export async function createUser(f: FormData) {
   const me = await requireUser("owner");
-  const email = str(f, "email", 120).toLowerCase();
+  const username = str(f, "username", 60).toLowerCase();
   const name = str(f, "name", 80);
   const role = str(f, "role") as Role;
   const password = str(f, "password", 200);
-  if (!/^\S+@\S+\.\S+$/.test(email) || !name || !ROLES.includes(role)) to("/admin/users", { error: "عبّ الاسم والإيميل والدور." });
+  if (!name || !ROLES.includes(role)) to("/admin/users", { error: "عبّ الاسم واسم المستخدم والدور." });
+  if (!USERNAME.test(username)) to("/admin/users", { error: "اسم المستخدم: حروف إنجليزية صغيرة وأرقام فقط (ويُسمح بـ . _ -)، من 3 إلى 40 حرف." });
   if (password.length < MIN_PASSWORD) to("/admin/users", { error: `كلمة المرور المؤقتة لازم ${MIN_PASSWORD} حرف أو أكثر.` });
   const [u] = await sql<{ id: string }[]>`
-    insert into users (email, name, role, password_hash) values (${email}, ${name}, ${role}, ${await hashPassword(password)})
-    on conflict (email) do nothing returning id`;
-  if (!u) to("/admin/users", { error: "هذا الإيميل مسجل من قبل." });
-  await audit(me, "user.created", "user", u.id, { email, role });
-  to("/admin/users", { ok: "تم إنشاء الحساب. أعطه كلمة المرور المؤقتة، وبيطلب منه النظام تفعيل التحقق بخطوتين عند أول دخول." });
+    insert into users (username, name, role, password_hash) values (${username}, ${name}, ${role}, ${await hashPassword(password)})
+    on conflict (username) do nothing returning id`;
+  if (!u) to("/admin/users", { error: "اسم المستخدم هذا مستخدم من قبل." });
+  await audit(me, "user.created", "user", u.id, { username, role });
+  to("/admin/users", { ok: "تم إنشاء الحساب. أعط الموظف اسم المستخدم وكلمة المرور، ويقدر يغيّرها من «حسابي»." });
 }
 
 export async function updateUser(f: FormData) {
@@ -335,7 +318,7 @@ export async function updateUser(f: FormData) {
   const id = str(f, "id");
   const op = str(f, "op");
   if (!UUID.test(id)) to("/admin/users");
-  const [u] = await sql<{ role: Role; active: boolean; email: string }[]>`select role, active, email from users where id = ${id}`;
+  const [u] = await sql<{ role: Role; active: boolean; username: string }[]>`select role, active, username from users where id = ${id}`;
   if (!u) to("/admin/users");
   // The owner can't lock themselves out or drop their own role; another owner has to do it.
   if (id === me.id && op !== "password") to("/admin/users", { error: "ما تقدر تعدّل صلاحيات حسابك بنفسك." });
@@ -345,21 +328,17 @@ export async function updateUser(f: FormData) {
     if (!ROLES.includes(role)) to("/admin/users");
     await sql`update users set role = ${role} where id = ${id}`;
     await sql`delete from sessions where user_id = ${id}`;
-    await audit(me, "user.role", "user", id, { email: u.email, from: u.role, to: role });
+    await audit(me, "user.role", "user", id, { username: u.username, from: u.role, to: role });
   } else if (op === "toggle") {
     await sql`update users set active = not active where id = ${id}`;
     await sql`delete from sessions where user_id = ${id}`;
-    await audit(me, u.active ? "user.disabled" : "user.enabled", "user", id, { email: u.email });
-  } else if (op === "mfa") {
-    await sql`update users set totp_secret = null, totp_enabled = false, totp_last_step = 0 where id = ${id}`;
-    await sql`delete from sessions where user_id = ${id}`;
-    await audit(me, "user.mfa_reset", "user", id, { email: u.email });
+    await audit(me, u.active ? "user.disabled" : "user.enabled", "user", id, { username: u.username });
   } else if (op === "password") {
     const password = str(f, "password", 200);
     if (password.length < MIN_PASSWORD) to("/admin/users", { error: `كلمة المرور لازم ${MIN_PASSWORD} حرف أو أكثر.` });
     await sql`update users set password_hash = ${await hashPassword(password)}, failed_logins = 0, locked_until = null where id = ${id}`;
     if (id !== me.id) await sql`delete from sessions where user_id = ${id}`;
-    await audit(me, "user.password_reset", "user", id, { email: u.email });
+    await audit(me, "user.password_reset", "user", id, { username: u.username });
   }
   to("/admin/users", { ok: "تم التحديث." });
 }

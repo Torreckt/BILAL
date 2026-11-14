@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "سجل التغييرات" };
 
 const labels: Record<string, string> = {
   "login.success": "دخول ناجح", "login.failed": "محاولة دخول فاشلة", "login.locked": "قفل الحساب بعد محاولات فاشلة",
-  "mfa.enabled": "فعّل التحقق بخطوتين", "mfa.failed": "رمز تحقق خاطئ", "password.changed": "غيّر كلمة المرور",
+  "password.changed": "غيّر كلمة المرور",
   "request.status": "غيّر حالة طلب", "request.assigned": "أسند طلب", "request.note": "أضاف ملاحظة على طلب", "request.deleted": "حذف طلب",
   "requests.purged": "حذف تلقائي لطلبات مغلقة قديمة",
   "service.published": "نشر خدمة", "service.saved_draft": "حفظ خدمة كمسودة", "service.deleted": "حذف خدمة",
@@ -15,7 +15,7 @@ const labels: Record<string, string> = {
   "faq.published": "نشر سؤال", "faq.saved_draft": "حفظ سؤال كمسودة", "faq.deleted": "حذف سؤال",
   "settings.links": "عدّل روابط التواصل", "settings.system": "عدّل إعدادات النظام",
   "user.created": "أنشأ مستخدم", "user.role": "غيّر دور مستخدم", "user.disabled": "أوقف حساب", "user.enabled": "فعّل حساب",
-  "user.mfa_reset": "صفّر التحقق بخطوتين لمستخدم", "user.password_reset": "غيّر كلمة مرور مستخدم", "user.created_or_reset": "إنشاء أو تصفير حساب من السيرفر",
+  "user.password_reset": "غيّر كلمة مرور مستخدم", "user.created_or_reset": "إنشاء أو تصفير حساب من السيرفر",
 };
 
 export default async function Audit() {

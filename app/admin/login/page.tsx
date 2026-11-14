@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "تسجيل الدخول" };
 
 export default async function Login({ searchParams }: { searchParams: Search }) {
   const user = await getSession();
-  if (user) redirect(user.mfa_ok ? "/admin" : "/admin/mfa");
+  if (user) redirect("/admin");
   return (
     <main className="adm-gate">
       <form className="adm-card adm-gate__card" action={login}>
@@ -20,8 +20,8 @@ export default async function Login({ searchParams }: { searchParams: Search }) 
         <h1 className="adm-title">لوحة الإدارة</h1>
         <Flash sp={await searchParams} />
         <label className="adm-field">
-          <span>الإيميل</span>
-          <input name="email" type="email" required autoComplete="username" dir="ltr" autoFocus />
+          <span>اسم المستخدم</span>
+          <input name="username" required maxLength={60} autoComplete="username" autoCapitalize="none" dir="ltr" autoFocus />
         </label>
         <label className="adm-field">
           <span>كلمة المرور</span>
@@ -30,7 +30,7 @@ export default async function Login({ searchParams }: { searchParams: Search }) 
         <button className="adm-btn adm-btn--red" type="submit">
           دخول
         </button>
-        <p className="adm-muted">الدخول للموظفين المصرّح لهم فقط. بعد كلمة المرور بنطلب رمز التحقق من تطبيق المصادقة.</p>
+        <p className="adm-muted">الدخول للموظفين فقط. إذا نسيت بياناتك اطلبها من مدير الحساب.</p>
       </form>
     </main>
   );
