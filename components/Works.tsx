@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { preload } from "react-dom";
 import type { MediaItem, Work } from "@/lib/content";
 
 /** Portfolio card in the "client file" style. `preview` keeps draft links inside preview mode. */
@@ -32,6 +33,8 @@ export function WorkCard({ work, preview = false, priority = false }: { work: Wo
 /** One image or video at its own proportions. Videos load only when the visitor presses play. */
 export function WorkMedia({ item, priority = false }: { item: MediaItem; priority?: boolean }) {
   const portrait = item.h > item.w;
+  // The first video's poster is the biggest thing on screen: fetch it early instead of waiting for the player.
+  if (priority && item.type === "video" && item.poster) preload(item.poster, { as: "image", fetchPriority: "high" });
   return (
     <figure className={`shot ${portrait ? "shot--portrait" : "shot--wide"}`} style={{ aspectRatio: `${item.w} / ${item.h}` }}>
       {item.type === "video" ? (

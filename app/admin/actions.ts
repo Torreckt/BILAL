@@ -15,7 +15,7 @@ import {
   type Role,
 } from "@/lib/auth";
 import type { MediaItem } from "@/lib/content";
-import { decrypt, hashPassword, randomToken, verifyPassword, verifyTotp } from "@/lib/crypto";
+import { decrypt, fingerprint, hashPassword, randomToken, verifyPassword, verifyTotp } from "@/lib/crypto";
 import { sql } from "@/lib/db";
 import { notifyRequest } from "@/lib/notify";
 import { statusLabels, statusesFor, type ContactIntent } from "@/lib/site";
@@ -26,7 +26,9 @@ import { removeUpload, saveUpload } from "@/lib/uploads";
 const str = (f: FormData, key: string, max = 300) => String(f.get(key) ?? "").trim().slice(0, max);
 const lines = (s: string) => s.split("\n").map((l) => l.trim()).filter(Boolean);
 function to(path: string, params: Record<string, string> = {}): never {
-  const q = new URLSearchParams(params).toString();
+  // Messages travel in the URL, so they are signed: a crafted link cannot make the dashboard show its own text.
+  const msg = params.ok ?? params.error;
+  const q = new URLSearchParams(msg ? { ...params, sig: fingerprint(msg) } : params).toString();
   redirect(q ? `${path}?${q}` : path);
 }
 const UUID = /^[0-9a-f-]{36}$/;

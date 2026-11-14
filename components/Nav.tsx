@@ -43,7 +43,7 @@ export function Nav() {
   return (
     <header className={`nav ${scrolled || open ? "is-scrolled" : ""} ${open ? "is-open" : ""}`}>
       <div className="nav__inner wrap">
-        <a className="brand" href="/" aria-label="ماين ستريم — الرئيسية">
+        <a className="brand" href="/" aria-label="Mainstream، الصفحة الرئيسية">
           <Eye className="brand__eye" />
           <span className="brand__word" dir="ltr">
             Mainstream

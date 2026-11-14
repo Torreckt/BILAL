@@ -76,7 +76,7 @@ export default async function Overview({ searchParams }: { searchParams: Search 
             )}
           </ul>
           <p className="adm-muted">
-            آخر 30 يوم: {count("request_saved")} طلب محفوظ من الموقع، و{count("whatsapp_click")} نقرة متابعة على واتساب.
+            آخر 30 يوم · طلبات محفوظة من الموقع: {count("request_saved")} · نقرات «تابع على واتساب»: {count("whatsapp_click")}
           </p>
 
           <section className="adm-card">

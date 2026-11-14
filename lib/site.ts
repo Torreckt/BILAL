@@ -58,13 +58,14 @@ export const sectors = [
 
 export type ContactIntent = "meeting" | "quote" | "inquiry" | "partner";
 
-export const contactIntents: { id: ContactIntent; label: string; emoji: string }[] = [
-  { id: "meeting", label: "اطلب اجتماع", emoji: "📅" },
-  { id: "quote", label: "اطلب عرض سعر", emoji: "🧾" },
-  { id: "inquiry", label: "استفسار", emoji: "💬" },
-  { id: "partner", label: "تعاون وشراكة", emoji: "🤝" },
+// `label` is what the visitor presses; `noun` names the request in the dashboard, emails and WhatsApp.
+export const contactIntents: { id: ContactIntent; label: string; noun: string; emoji: string }[] = [
+  { id: "meeting", label: "اطلب اجتماع", noun: "طلب اجتماع", emoji: "📅" },
+  { id: "quote", label: "اطلب عرض سعر", noun: "طلب عرض سعر", emoji: "🧾" },
+  { id: "inquiry", label: "استفسار", noun: "استفسار", emoji: "💬" },
+  { id: "partner", label: "تعاون وشراكة", noun: "طلب تعاون وشراكة", emoji: "🤝" },
 ];
-export const intentLabel = (t: string) => contactIntents.find((c) => c.id === t)?.label ?? t;
+export const intentLabel = (t: string) => contactIntents.find((c) => c.id === t)?.noun ?? t;
 
 export const meetingTypes = ["اجتماع أونلاين", "اجتماع حضوري", "مكالمة هاتفية"];
 export const meetingTimes = ["الصباح", "الظهر", "العصر", "المساء"];

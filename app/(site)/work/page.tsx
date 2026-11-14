@@ -33,7 +33,7 @@ export default async function WorkIndex({ searchParams }: { searchParams: Promis
           {works.length ? (
             <ul className="works">
               {works.map((w, i) => (
-                <WorkCard key={w.id} work={w} preview={preview} priority={i < 3} />
+                <WorkCard key={w.id} work={w} preview={preview} priority={i === 0} />
               ))}
             </ul>
           ) : (

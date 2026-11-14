@@ -59,7 +59,7 @@ export default async function Requests({ searchParams }: { searchParams: Search 
           <select name="type" defaultValue={sp.type ?? ""}>
             <option value="">الكل</option>
             {contactIntents.map((c) => (
-              <option key={c.id} value={c.id}>{c.label}</option>
+              <option key={c.id} value={c.id}>{c.noun}</option>
             ))}
           </select>
         </label>

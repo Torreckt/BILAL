@@ -2,8 +2,6 @@
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  // Self-contained server build for the Docker image.
-  output: "standalone",
   images: { formats: ["image/avif", "image/webp"], minimumCacheTTL: 2678400 },
   experimental: { serverActions: { bodySizeLimit: "40mb" } },
   async headers() {
@@ -11,7 +9,7 @@ const nextConfig = {
       {
         source: "/:path*",
         headers: [
-          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "DENY" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },

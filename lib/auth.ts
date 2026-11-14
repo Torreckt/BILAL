@@ -79,6 +79,8 @@ export async function allow(key: string, limit: number, windowSeconds: number) {
     values (${key}, to_timestamp(floor(extract(epoch from now()) / ${windowSeconds}) * ${windowSeconds}))
     on conflict (key, bucket) do update set count = rate_limits.count + 1
     returning count`;
+  // Old counters are cleared now and then, so the table stays small even without the daily retention job.
+  if (Math.random() < 0.02) await sql`delete from rate_limits where bucket < now() - interval '2 days'`;
   return row.count <= limit;
 }
 

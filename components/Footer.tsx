@@ -57,7 +57,7 @@ export function Footer({ links, services }: { links: Links; services: { slug: st
     <footer ref={ref} className={`footer ${visible ? "is-visible" : ""}`}>
       <div className="wrap footer__grid">
         <div className="footer__col">
-          <a className="footer__logo" href="/" aria-label="ماين ستريم — الرئيسية">
+          <a className="footer__logo" href="/" aria-label="Mainstream، الصفحة الرئيسية">
             <span className="footer__badge">
               <Eye className="footer__eye" tone="light" wave={false} />
             </span>

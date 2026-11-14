@@ -2,6 +2,7 @@ import { Eye } from "@/components/Eye";
 import { CONTENT_ROLES, REQUEST_ROLES, requireUser, roleLabels, type Role } from "@/lib/auth";
 import { sql } from "@/lib/db";
 import { logout } from "../actions";
+import { Menu } from "../Menu";
 
 const menu: { href: string; label: string; roles: Role[] }[] = [
   { href: "/admin", label: "نظرة عامة", roles: ["owner", "agent", "editor"] },
@@ -31,18 +32,11 @@ export default async function Panel({ children }: { children: React.ReactNode })
           <span dir="ltr">Mainstream</span>
         </a>
         <nav aria-label="أقسام اللوحة">
-          <ul className="adm-menu">
-            {menu
+          <Menu
+            items={menu
               .filter((m) => m.roles.includes(user.role))
-              .map((m) => (
-                <li key={m.href}>
-                  <a href={m.href}>
-                    {m.label}
-                    {m.href === "/admin/requests" && n > 0 && <span className="adm-count">{n}</span>}
-                  </a>
-                </li>
-              ))}
-          </ul>
+              .map((m) => ({ href: m.href, label: m.label, count: m.href === "/admin/requests" ? n : 0 }))}
+          />
         </nav>
         <div className="adm-me">
           <p>

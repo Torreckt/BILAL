@@ -6,7 +6,8 @@ import "./globals.css";
 
 const gloock = Gloock({ weight: "400", subsets: ["latin"], variable: "--font-gloock", display: "swap" });
 const rakkas = Rakkas({ weight: "400", subsets: ["arabic", "latin"], variable: "--font-rakkas", display: "swap" });
-const grotesk = Space_Grotesk({ weight: "700", subsets: ["latin"], variable: "--font-grotesk", display: "swap" });
+// Small Latin labels only: loaded when used rather than preloaded, so it does not compete with the first image.
+const grotesk = Space_Grotesk({ weight: "700", subsets: ["latin"], variable: "--font-grotesk", display: "swap", preload: false });
 const tajawal = Tajawal({
   weight: ["400", "500", "700", "800"],
   subsets: ["arabic", "latin"],
