@@ -1,17 +1,9 @@
 "use server";
 
-import { createSession, destroySession, endSessions, getSession, markSessionMfaOk, requireUser } from "@/lib/auth";
-import {
-  acceptTotpStep,
-  clearFailedLogins,
-  findActiveUserByEmail,
-  passwordHash,
-  recordFailedLogin,
-  setPasswordHash,
-  totpState,
-} from "@/lib/admin/users";
+import { createSession, destroySession, endSessions, requireUser } from "@/lib/auth";
+import { clearFailedLogins, findActiveUserByUsername, passwordHash, recordFailedLogin, setPasswordHash } from "@/lib/admin/users";
 import { audit } from "@/lib/audit";
-import { decrypt, hashPassword, randomToken, verifyPassword, verifyTotp } from "@/lib/crypto";
+import { hashPassword, randomToken, verifyPassword } from "@/lib/crypto";
 import { clientKey, consumeRateLimit } from "@/lib/rate-limit";
 import { MIN_PASSWORD } from "@/lib/validate";
 import { field, redirectWithMessage } from "./form";
@@ -21,14 +13,14 @@ import { field, redirectWithMessage } from "./form";
 let dummyHash: Promise<string> | undefined;
 
 export async function login(f: FormData) {
-  const email = field(f, "email", 120).toLowerCase();
+  const username = field(f, "username", 60).toLowerCase();
   const password = field(f, "password", 200);
-  const fail = () => redirectWithMessage("/admin/login", { error: "الإيميل أو كلمة المرور غير صحيحة، أو الحساب مقفل مؤقتاً." });
+  const fail = () => redirectWithMessage("/admin/login", { error: "اسم المستخدم أو كلمة المرور غير صحيحة، أو الحساب مقفل مؤقتاً." });
   if (!(await consumeRateLimit(`login:${await clientKey()}`, 10, 600))) {
     redirectWithMessage("/admin/login", { error: "محاولات كثيرة. جرّب بعد عشر دقايق." });
   }
 
-  const user = await findActiveUserByEmail(email);
+  const user = await findActiveUserByUsername(username);
   // Always spend the same time hashing, so a missing account can't be told apart from a wrong password.
   const ok = await verifyPassword(password, user?.password_hash ?? (await (dummyHash ??= hashPassword(randomToken()))));
   if (!user || user.locked) fail();
@@ -38,32 +30,14 @@ export async function login(f: FormData) {
     fail();
   }
   await clearFailedLogins(user.id);
-  await createSession(user.id); // password only: opens nothing until the second step passes
-  redirectWithMessage("/admin/mfa");
+  await createSession(user.id);
+  await audit(user, "login.success", "user", user.id);
+  redirectWithMessage("/admin");
 }
 
 export async function logout() {
   await destroySession();
   redirectWithMessage("/admin/login");
-}
-
-export async function verifyMfa(f: FormData) {
-  const me = await getSession();
-  if (!me) redirectWithMessage("/admin/login");
-  if (!(await consumeRateLimit(`mfa:${me.id}`, 6, 300))) redirectWithMessage("/admin/mfa", { error: "محاولات كثيرة. انتظر خمس دقايق." });
-  const totp = await totpState(me.id);
-  const step = totp.secret ? verifyTotp(decrypt(totp.secret), field(f, "code", 12), totp.lastStep) : null;
-  if (!step) {
-    await audit(me, "mfa.failed", "user", me.id);
-    redirectWithMessage("/admin/mfa", { error: "الرمز غير صحيح أو منتهي. جرّب الرمز الجديد من التطبيق." });
-  }
-  // Each code works once. Then swap the half-open session for a fresh, fully signed-in one.
-  await acceptTotpStep(me.id, step);
-  await destroySession();
-  await createSession(me.id);
-  await markSessionMfaOk();
-  await audit(me, me.totp_enabled ? "login.success" : "mfa.enabled", "user", me.id);
-  redirectWithMessage("/admin");
 }
 
 export async function changePassword(f: FormData) {

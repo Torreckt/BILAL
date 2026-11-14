@@ -1,26 +1,29 @@
 "use server";
 
-import { ROLES, getUser, insertUser, resetTotp, setPasswordHash, setRole, toggleActive } from "@/lib/admin/users";
+import { ROLES, getUser, insertUser, setPasswordHash, setRole, toggleActive } from "@/lib/admin/users";
 import { audit } from "@/lib/audit";
 import { endSessions, requireUser, type Role } from "@/lib/auth";
 import { hashPassword } from "@/lib/crypto";
-import { MIN_PASSWORD, isEmailLike, isUuid } from "@/lib/validate";
+import { MIN_PASSWORD, isUsername, isUuid } from "@/lib/validate";
 import { field, redirectWithMessage } from "./form";
 
 // Account management: owner only.
 
 export async function createUser(f: FormData) {
   const me = await requireUser("owner");
-  const email = field(f, "email", 120).toLowerCase();
+  const username = field(f, "username", 60).toLowerCase();
   const name = field(f, "name", 80);
   const role = field(f, "role") as Role;
   const password = field(f, "password", 200);
-  if (!isEmailLike(email) || !name || !ROLES.includes(role)) redirectWithMessage("/admin/users", { error: "عبّ الاسم والإيميل والدور." });
+  if (!name || !ROLES.includes(role)) redirectWithMessage("/admin/users", { error: "عبّ الاسم واسم المستخدم والدور." });
+  if (!isUsername(username)) {
+    redirectWithMessage("/admin/users", { error: "اسم المستخدم: حروف إنجليزية صغيرة وأرقام فقط (ويُسمح بـ . _ -)، من 3 إلى 40 حرف." });
+  }
   if (password.length < MIN_PASSWORD) redirectWithMessage("/admin/users", { error: `كلمة المرور المؤقتة لازم ${MIN_PASSWORD} حرف أو أكثر.` });
-  const id = await insertUser(email, name, role, await hashPassword(password));
-  if (!id) redirectWithMessage("/admin/users", { error: "هذا الإيميل مسجل من قبل." });
-  await audit(me, "user.created", "user", id, { email, role });
-  redirectWithMessage("/admin/users", { ok: "تم إنشاء الحساب. أعطه كلمة المرور المؤقتة، وبيطلب منه النظام تفعيل التحقق بخطوتين عند أول دخول." });
+  const id = await insertUser(username, name, role, await hashPassword(password));
+  if (!id) redirectWithMessage("/admin/users", { error: "اسم المستخدم هذا مستخدم من قبل." });
+  await audit(me, "user.created", "user", id, { username, role });
+  redirectWithMessage("/admin/users", { ok: "تم إنشاء الحساب. أعط الموظف اسم المستخدم وكلمة المرور، ويقدر يغيّرها من «حسابي»." });
 }
 
 export async function updateUser(f: FormData) {
@@ -38,21 +41,17 @@ export async function updateUser(f: FormData) {
     if (!ROLES.includes(role)) redirectWithMessage("/admin/users");
     await setRole(id, role);
     await endSessions(id);
-    await audit(me, "user.role", "user", id, { email: u.email, from: u.role, to: role });
+    await audit(me, "user.role", "user", id, { username: u.username, from: u.role, to: role });
   } else if (op === "toggle") {
     await toggleActive(id);
     await endSessions(id);
-    await audit(me, u.active ? "user.disabled" : "user.enabled", "user", id, { email: u.email });
-  } else if (op === "mfa") {
-    await resetTotp(id);
-    await endSessions(id);
-    await audit(me, "user.mfa_reset", "user", id, { email: u.email });
+    await audit(me, u.active ? "user.disabled" : "user.enabled", "user", id, { username: u.username });
   } else if (op === "password") {
     const password = field(f, "password", 200);
     if (password.length < MIN_PASSWORD) redirectWithMessage("/admin/users", { error: `كلمة المرور لازم ${MIN_PASSWORD} حرف أو أكثر.` });
     await setPasswordHash(id, await hashPassword(password));
     if (id !== me.id) await endSessions(id);
-    await audit(me, "user.password_reset", "user", id, { email: u.email });
+    await audit(me, "user.password_reset", "user", id, { username: u.username });
   }
   redirectWithMessage("/admin/users", { ok: "تم التحديث." });
 }
